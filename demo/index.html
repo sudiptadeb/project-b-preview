@@ -30,6 +30,9 @@
     frame.style.display = 'block';
     frame.src = 'window.html' + location.search;
   };
+  // The visitor's OS, which the core reads as it starts (core/cmd/webdemo).
+  const ua = navigator.userAgent;
+  globalThis.pbcoreOS = /Android/.test(ua) ? 'android' : /Macintosh|Mac OS X/.test(ua) ? 'mac' : 'linux';
   const go = new Go();
   WebAssembly.instantiateStreaming(fetch('core.wasm'), go.importObject)
     .then((r) => go.run(r.instance))
