@@ -4,7 +4,7 @@
 (() => {
   const top = window.top;
   const root = new URL('.', top.location.href).pathname;
-  const ours = /^(mock\/window\/size|mock\/origin|mock\/fire|mock\/extensions\/fire|mock\/window\/events|mock\/events|mock\/thumb\/\d+|[a-z]+\/send|[a-z]+\/events)$/;
+  const ours = /^(mock\/menu|mock\/menulist|mock\/choose|mock\/windows|mock\/mode|mock\/window\/size|mock\/origin|mock\/fire|mock\/extensions\/fire|mock\/window\/events|mock\/events|mock\/thumb\/\d+|[a-z]+\/send|[a-z]+\/events)$/;
 
   // route is the core's path for an address, or null for any other.
   function route(input) {
@@ -26,6 +26,17 @@
       return svg ? new Response(svg, { headers: { 'Content-Type': 'image/svg+xml' } }) : new Response('', { status: 404 });
     }
     const body = init.body == null ? '' : String(init.body);
+    // What the mock OS page reads and does (core/cmd/dev/os.js), answered by the core.
+    const form = new URLSearchParams(body);
+    const query = new URLSearchParams(r.query);
+    const json = (s) => new Response(s, { headers: { 'Content-Type': 'application/json' } });
+    switch (r.path) {
+      case 'mock/menu': return json(core.menu());
+      case 'mock/windows': return json(core.windows());
+      case 'mock/menulist': return json(await new Promise((done) => core.menuList(query.get('name') || '', done)));
+      case 'mock/choose': core.choose(form.get('action') || ''); return new Response('');
+      case 'mock/mode': core.mode(Number(query.get('window') || 1), form.get('mode') || ''); return new Response('');
+    }
     core.post(r.path, r.query, body);
     return new Response('');
   };

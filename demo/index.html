@@ -2,41 +2,72 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Project B, in your browser</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Project B</title>
+<meta name="description" content="A browser you shape to fit, for Mac, Android and Linux. Free and open source. Try it here: this page runs the real app.">
+<link rel="icon" href="icon-small.svg" type="image/svg+xml">
+<!-- The first bytes paint the page: white, or black in dark mode, before anything loads. -->
 <style>
   :root { color-scheme: light dark; }
-  html, body { height: 100%; margin: 0; background: #fff; }
+  html, body { margin: 0; height: 100%; background: #fff; }
   @media (prefers-color-scheme: dark) { html, body { background: #000; } }
-  #status { position: fixed; inset: 0; display: grid; place-items: center; font: 15px system-ui, sans-serif; color: #5c6270; }
-  #window { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; display: none; }
 </style>
+<link rel="stylesheet" href="stage.css">
 <script src="fs.js"></script>
 <script src="wasm_exec.js"></script>
+<script>
+  // The core starts at once, while the intro plays. The visitor's OS is what the core
+  // reads as it starts (core/cmd/webdemo): a phone's app on Android, the Mac's keys on a
+  // Mac, Linux's on any other.
+  (() => {
+    const ua = navigator.userAgent;
+    globalThis.pbcoreOS = /Android/.test(ua) ? 'android' : /Macintosh|Mac OS X/.test(ua) ? 'mac' : 'linux';
+    const t0 = performance.now();
+    globalThis.pbcoreStarted = new Promise((ready, failed) => {
+      globalThis.pbcoreReady = () => {
+        globalThis.pbcoreStartMs = Math.round(performance.now() - t0);
+        ready();
+      };
+      const go = new Go();
+      WebAssembly.instantiateStreaming(fetch('core.wasm'), go.importObject)
+        .then((r) => go.run(r.instance))
+        .catch(failed);
+    });
+  })();
+</script>
 </head>
 <body>
-<div id="status">Starting Project B…</div>
-<iframe id="window" title="Project B"></iframe>
-<script>
-  // The core starts here, in this page, and the window page and every page it holds speak
-  // to it through shim.js.
-  const status = document.getElementById('status');
-  const frame = document.getElementById('window');
-  const t0 = performance.now();
-  globalThis.pbcoreReady = () => {
-    globalThis.pbcoreStartMs = Math.round(performance.now() - t0);
-    console.log('pbcore ready in', globalThis.pbcoreStartMs, 'ms');
-    status.remove();
-    frame.style.display = 'block';
-    frame.src = 'window.html' + location.search;
-  };
-  // The visitor's OS, which the core reads as it starts (core/cmd/webdemo).
-  const ua = navigator.userAgent;
-  globalThis.pbcoreOS = /Android/.test(ua) ? 'android' : /Macintosh|Mac OS X/.test(ua) ? 'mac' : 'linux';
-  const go = new Go();
-  WebAssembly.instantiateStreaming(fetch('core.wasm'), go.importObject)
-    .then((r) => go.run(r.instance))
-    .catch((e) => { status.textContent = 'Project B could not start: ' + e; console.error(e); });
-</script>
+<div id="intro" aria-hidden="true"></div>
+
+<main id="desktop" hidden>
+  <!-- The mock OS: the desktop, its menu bar and the app's windows, driven by the core. -->
+  <iframe id="os" title="Project B on a desktop"></iframe>
+
+  <div id="download">
+    <button id="download-button" aria-haspopup="true" aria-expanded="false">Download</button>
+    <div id="download-menu" class="menu" hidden>
+      <a href="https://github.com/sudiptadeb/project-b/releases/latest/download/Project-B.dmg">Mac<small>Apple silicon · DMG</small></a>
+      <a href="https://github.com/sudiptadeb/project-b/releases/latest/download/Project-B.apk">Android<small>arm64 phones · APK</small></a>
+      <a href="https://projectb.debkosh.com/project-b.flatpakref">Linux<small>arm64 preview · Flatpak</small></a>
+      <hr>
+      <a href="https://github.com/sudiptadeb/project-b">Source on GitHub<small>MIT licence</small></a>
+    </div>
+  </div>
+
+  <aside id="log" aria-label="What happened">
+    <button id="log-toggle" aria-expanded="true"><span class="dot"></span>What happened</button>
+    <ol id="log-lines"></ol>
+  </aside>
+
+  <svg id="pointer" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3l14 9-6.5 1.5L9.5 20z" fill="#111" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>
+</main>
+
+<noscript>
+  <p class="noscript">Project B is a browser you shape to fit, for Mac, Android and Linux.
+  This page runs the real app, which needs JavaScript. <a href="mock-page.html">Read about it</a>, or
+  <a href="https://github.com/sudiptadeb/project-b/releases/latest">download it</a>.</p>
+</noscript>
+
+<script src="stage.js"></script>
 </body>
 </html>

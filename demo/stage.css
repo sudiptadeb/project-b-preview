@@ -1,0 +1,95 @@
+/* The stage around the mock OS page: the intro, Download, the log and the pointer. The
+   desktop itself, its menu bar and windows are the OS page's (core/cmd/dev/os.html).
+   Tokens on :root, dark under the system's setting. */
+:root {
+  --brand-a: #0d7d86; --brand-b: #05515a; --mint: #5ff5cf;
+  --page: #ffffff; --text: #1f1f1f; --muted: #5c6270;
+  --menu: rgba(250, 251, 251, 0.95); --menu-line: rgba(15, 20, 25, 0.12);
+  --log: rgba(255, 255, 255, 0.86); --log-line: rgba(15, 20, 25, 0.1);
+  --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #000000; --text: #e8eaed; --muted: #9aa0a6;
+    --menu: rgba(32, 38, 40, 0.95); --menu-line: rgba(255, 255, 255, 0.12);
+    --log: rgba(14, 26, 28, 0.86); --log-line: rgba(255, 255, 255, 0.1);
+  }
+}
+
+html, body { background: var(--page); color: var(--text); font: 14px/1.4 var(--font); overflow: hidden; }
+body { -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+.noscript { max-width: 560px; margin: 20vh auto; padding: 0 16px; font: 17px/1.5 var(--font); }
+
+/* The intro: lines that fade in one after another, then the whole fades to the desktop. */
+#intro {
+  position: fixed; inset: 0; z-index: 10; display: grid; place-content: center; gap: 14px;
+  padding: 0 24px; text-align: center; background: var(--page); cursor: default;
+}
+#intro p {
+  margin: 0; font-weight: 650; letter-spacing: -0.02em; font-size: clamp(28px, 4.6vw, 56px); line-height: 1.12;
+  opacity: 0; transform: translateY(10px); filter: blur(8px);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.9s ease;
+}
+#intro p.shown { opacity: 1; transform: none; filter: none; }
+#intro p + p { color: var(--brand-a); }
+@media (prefers-color-scheme: dark) { #intro p + p { color: var(--mint); } }
+#intro.leaving { opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
+
+#desktop { position: fixed; inset: 0; }
+#desktop.arriving { animation: arrive 0.7s ease both; }
+@keyframes arrive { from { opacity: 0; } to { opacity: 1; } }
+#os { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+/* Download, at the right end of the OS's menu bar. */
+#download { position: absolute; top: 0; right: 10px; z-index: 5; height: 30px; display: flex; align-items: center; }
+.phone #download { height: 28px; right: 12px; }
+#download-button {
+  height: 22px; padding: 0 10px; border: 0; border-radius: 5px; background: none; cursor: default;
+  font-weight: 650; font-size: 13.5px; color: var(--brand-a);
+}
+@media (prefers-color-scheme: dark) { #download-button { color: var(--mint); } }
+#download-button[aria-expanded="true"] { background: rgba(127, 127, 127, 0.22); }
+.menu {
+  position: absolute; top: 28px; right: 0; min-width: 220px; padding: 5px; border-radius: 9px;
+  background: var(--menu); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22), 0 0 0 0.5px var(--menu-line);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); font-size: 13.5px;
+}
+.menu a { display: flex; flex-direction: column; padding: 5px 12px; border-radius: 5px; color: inherit; text-decoration: none; }
+.menu a small { color: var(--muted); font-size: 12px; }
+.menu a:hover { background: var(--brand-a); color: #fff; }
+.menu a:hover small { color: inherit; }
+.menu hr { border: 0; border-top: 1px solid var(--menu-line); margin: 5px 8px; }
+
+/* The log: what the visitor did, what the OS did, and what the app asked of the engine. */
+#log {
+  position: absolute; left: 12px; bottom: 12px; z-index: 4; width: min(400px, calc(100vw - 24px)); max-height: 32vh;
+  display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; font-size: 12.5px;
+  background: var(--log); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16), 0 0 0 0.5px var(--log-line);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+}
+#log-toggle { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 0; background: none; font-weight: 600; text-align: left; cursor: default; }
+#log-toggle .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 2px rgba(95, 245, 207, 0.25); }
+#log-lines { margin: 0; padding: 0 12px 10px; list-style: none; overflow-y: auto; font: 11.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+#log-lines li { padding: 2px 0; color: var(--muted); border-top: 1px solid var(--log-line); }
+#log-lines li b { font-weight: 600; color: var(--text); }
+#log-lines li.fresh { animation: fresh 1.2s ease; }
+@keyframes fresh { from { background: rgba(95, 245, 207, 0.25); } to { background: transparent; } }
+#log.collapsed #log-lines { display: none; }
+#log.collapsed { width: auto; }
+
+/* The pointer that opens the app and tours its shells, until the visitor takes over. */
+#pointer {
+  position: absolute; z-index: 7; width: 24px; height: 24px; left: 0; top: 0; pointer-events: none; opacity: 0;
+  transition: transform 0.9s cubic-bezier(0.35, 0.05, 0.2, 1), opacity 0.3s ease; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+#pointer.click path { transform: scale(0.85); transform-origin: 5px 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  #intro p { transition: none; transform: none; filter: none; }
+  #pointer { transition: none; }
+}
+/* On a phone the log sits in the status bar, out of the app's way. */
+.phone #log { top: 3px; bottom: auto; left: 50%; transform: translateX(-50%); max-height: 50vh; box-shadow: 0 0 0 0.5px var(--log-line); }
+.phone #log-toggle { padding: 3px 10px; font-size: 12px; }
+.phone #log:not(.collapsed) { width: calc(100vw - 24px); }

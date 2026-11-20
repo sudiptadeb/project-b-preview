@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="shim.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project B</title>
+<!--
+  The mock OS: the desktop the app's windows sit on, and what the OS draws for the app,
+  driven by the core as the real OS is driven by the engine (os.js). Each window the core
+  has open is the window page, /mock/window?window=<id>, in a frame placed and stacked as
+  a real window is. Above them is the menu bar the app sets, and on the desktop the app's
+  icon, which opens the app as the Dock does.
+
+    ?phone       a phone's: no menu bar or window frame, the app over the whole screen
+                 under a status bar, and a home bar to go back to the home screen.
+    ?launched    the app is open from the start; otherwise its icon opens it, as a person
+                 does (the web demo's stage).
+-->
+<style>
+  :root {
+    color-scheme: light dark;
+    --brand-a: #0d7d86; --brand-b: #05515a; --mint: #5ff5cf;
+    --text: #1f1f1f; --muted: #5c6270;
+    --wall: #eef5f5; --wall-line: rgba(13, 125, 134, 0.09); --wall-guide: rgba(13, 125, 134, 0.16);
+    --bar: rgba(246, 249, 249, 0.72); --bar-line: rgba(15, 20, 25, 0.08);
+    --menu: rgba(250, 251, 251, 0.95); --menu-line: rgba(15, 20, 25, 0.12);
+    --label: #1f2b2d;
+    --win-shadow: 0 24px 70px rgba(5, 40, 45, 0.28), 0 4px 14px rgba(5, 40, 45, 0.14), 0 0 0 0.5px rgba(0, 0, 0, 0.18);
+    --font: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text: #e8eaed; --muted: #9aa0a6;
+      --wall: #061f22; --wall-line: rgba(95, 245, 207, 0.06); --wall-guide: rgba(95, 245, 207, 0.11);
+      --bar: rgba(10, 30, 33, 0.62); --bar-line: rgba(255, 255, 255, 0.08);
+      --menu: rgba(32, 38, 40, 0.95); --menu-line: rgba(255, 255, 255, 0.12);
+      --label: #e8eaed;
+      --win-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), 0 4px 14px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.14);
+    }
+  }
+  html, body { height: 100%; margin: 0; overflow: hidden; color: var(--text); font: 14px/1.4 var(--font); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; }
+
+  /* The desktop: a quiet blueprint. */
+  body {
+    background-color: var(--wall);
+    background-image:
+      linear-gradient(var(--wall-guide) 1px, transparent 1px), linear-gradient(90deg, var(--wall-guide) 1px, transparent 1px),
+      linear-gradient(var(--wall-line) 1px, transparent 1px), linear-gradient(90deg, var(--wall-line) 1px, transparent 1px);
+    background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+    background-position: center;
+  }
+
+  /* The menu bar, holding the app's menus while it is open. */
+  #menubar {
+    position: absolute; inset: 0 0 auto; z-index: 1000; height: 30px; display: flex; align-items: center;
+    padding: 0 10px; background: var(--bar); border-bottom: 1px solid var(--bar-line);
+    backdrop-filter: saturate(1.6) blur(18px); -webkit-backdrop-filter: saturate(1.6) blur(18px);
+    font-size: 13.5px; user-select: none; -webkit-user-select: none;
+  }
+  #clock { display: none; }
+  .phone #clock { display: inline; }
+  #menubar .mark { width: 17px; height: 17px; margin: 0 8px 0 4px; }
+  #menus { display: flex; height: 100%; }
+  #menus > div { position: relative; height: 100%; }
+  #menus > div > button { height: 22px; margin-top: 4px; padding: 0 9px; border: 0; border-radius: 5px; background: none; cursor: default; }
+  #menus > div > button.app { font-weight: 700; }
+  #menus > div > button[aria-expanded="true"] { background: rgba(127, 127, 127, 0.22); }
+
+  .menu {
+    position: absolute; top: 28px; left: 0; z-index: 1001; min-width: 230px; padding: 5px;
+    background: var(--menu); border-radius: 9px; font-size: 13.5px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22), 0 0 0 0.5px var(--menu-line);
+    backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  }
+  .menu .item {
+    display: flex; align-items: center; gap: 18px; width: 100%; box-sizing: border-box; min-height: 24px;
+    padding: 2px 10px 2px 22px; border: 0; border-radius: 5px; background: none; text-align: left; position: relative; cursor: default;
+  }
+  .menu .item .key { margin-left: auto; color: var(--muted); font-size: 12.5px; letter-spacing: 0.04em; }
+  .menu .item .check { position: absolute; left: 7px; }
+  .menu .item.sub::after { content: "›"; margin-left: auto; color: var(--muted); }
+  .menu .item:disabled { color: var(--muted); opacity: 0.6; }
+  .menu .item:not(:disabled):hover, .menu .item.open { background: var(--brand-a); color: #fff; }
+  .menu .item:not(:disabled):hover .key, .menu .item.open .key, .menu .item.open.sub::after, .menu .item:not(:disabled):hover.sub::after { color: inherit; }
+  .menu hr { border: 0; border-top: 1px solid var(--menu-line); margin: 5px 8px; }
+  .menu .submenu { position: absolute; top: -5px; left: calc(100% - 4px); color: var(--text); }
+  .menu .empty { padding: 3px 22px; color: var(--muted); }
+
+  /* The app's icon. */
+  #icons { position: absolute; inset: 30px 0 0; display: grid; place-items: center; pointer-events: none; }
+  #app-icon {
+    pointer-events: auto; position: relative; display: grid; justify-items: center; gap: 6px; padding: 8px 10px 6px;
+    border: 0; border-radius: 12px; background: none; cursor: default; -webkit-tap-highlight-color: transparent;
+  }
+  #app-icon img { width: 96px; height: 96px; filter: drop-shadow(0 8px 18px rgba(5, 60, 66, 0.3)); transition: transform 0.15s ease; }
+  #app-icon span { font-size: 13px; font-weight: 600; color: var(--label); padding: 1px 6px; border-radius: 5px; }
+  #app-icon.selected span { background: var(--brand-a); color: #fff; }
+  #app-icon.pressed img { transform: scale(0.92); }
+  #app-icon .running { position: absolute; bottom: -4px; width: 5px; height: 5px; border-radius: 50%; background: var(--label); opacity: 0.7; }
+
+  /* The windows. */
+  .win { position: absolute; border-radius: 12px; overflow: hidden; box-shadow: var(--win-shadow); transform-origin: 0 0; will-change: transform, opacity; }
+  .win iframe { display: block; width: 100%; height: 100%; border: 0; background: transparent; }
+  .win.zoomed { border-radius: 0; }
+  .win.hidden { visibility: hidden; pointer-events: none; }
+  /* The window's own buttons, which the OS answers, over where the engine reports them. */
+  .win .buttons { position: absolute; display: flex; justify-content: space-between; align-items: center; z-index: 1; }
+  .win .buttons button { width: 14px; height: 14px; padding: 0; border: 0; border-radius: 50%; background: transparent; cursor: default; font: 600 10px/14px var(--font); color: transparent; }
+  .win .buttons:hover button:nth-child(1)::after { content: "×"; color: #7a1712; }
+  .win .buttons:hover button:nth-child(2)::after { content: "–"; color: #8a5a00; }
+  .win .buttons:hover button:nth-child(3)::after { content: "+"; color: #0b5d1e; }
+
+  /* A phone: a status bar, the home screen's icons, and the app over the whole screen. */
+  .phone #menubar { height: 28px; padding: 0 16px; font-weight: 600; font-size: 13px; }
+  .phone #menus, .phone #menubar .mark { display: none; }
+  .phone #icons { inset: 28px 0 0; place-items: start; padding: 36px 0 0 24px; }
+  .phone #app-icon img { width: 64px; height: 64px; }
+  .phone .win { border-radius: 0; box-shadow: none; }
+  #home-bar { position: absolute; z-index: 1000; left: 50%; bottom: 0; width: 160px; height: 22px; transform: translateX(-50%); border: 0; background: none; padding: 0; cursor: pointer; }
+  #home-bar::after { content: ""; display: block; width: 120px; height: 5px; margin: 0 auto; border-radius: 3px; background: var(--text); opacity: 0.55; }
+</style>
+</head>
+<body>
+<header id="menubar">
+  <img class="mark" src="icon-small.svg" alt="">
+  <span id="clock"></span>
+  <nav id="menus" aria-label="Project B's menu bar"></nav>
+</header>
+<div id="icons">
+  <button id="app-icon" aria-label="Open Project B"><img src="icon.svg" alt=""><span>Project B</span><i class="running" hidden></i></button>
+</div>
+<div id="windows"></div>
+<script src="os.js"></script>
+</body>
+</html>
