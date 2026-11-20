@@ -7,14 +7,15 @@
 
 // The opening lines, shown one after another before the desktop.
 const OPENING = [
-  "Project B's whole interface is a web page.",
-  'So here it is, running inside yours.',
-  'The same code as the app. Only the web engine is a stand-in.',
+  'A browser in three separate parts.',
+  'Shell. Core. Renderer.',
+  "Swap any one, and the others don't notice.",
+  'Like now: no renderer, and the rest is running in this tab.',
 ];
 
 // The tour, once the window is open: View › Shell › each of these, in turn.
-const TOUR = ['Glide', 'Terminal', 'Minimal', 'Standard'];
-const TOUR_STEP_MS = 1200;
+const TOUR = ['Glide', 'Terminal', 'Fox', 'Minimal', 'Standard'];
+const TOUR_STEP_MS = 2200;
 
 const $ = (id) => document.getElementById(id);
 const desktop = $('desktop');
@@ -38,8 +39,8 @@ function log(who, text) {
   while (lines.children.length > 80) lines.firstChild.remove();
   lines.scrollTop = lines.scrollHeight;
 }
-// What the app asks of the engine, as the core's demo engine says it (stage.go).
-globalThis.pbcoreLog = (line) => log('engine', line);
+// What the app asks of the renderer, as the core's stand-in says it (stage.go).
+globalThis.pbcoreLog = (line) => log('renderer', line);
 const logEl = $('log');
 if (phone) logEl.classList.add('collapsed');
 $('log-toggle').addEventListener('click', () => {
@@ -56,6 +57,7 @@ function handOver() {
   if (!touring || introPlaying) return;
   touring = false;
   pointer.style.opacity = 0;
+  logEl.classList.remove('touring');
 }
 addEventListener('pointerdown', (e) => { if (e.isTrusted) handOver(); }, true);
 addEventListener('keydown', (e) => { if (e.isTrusted) handOver(); }, true);
@@ -141,17 +143,27 @@ async function tour() {
     if (!touring) return;
     await press();
     choice.click();
+    // Out of the way, so the new shell is seen whole.
+    pointer.style.transform = `translate(${innerWidth * 0.55}px, ${innerHeight * 0.6}px)`;
+    log('core', `same tabs and history; the shell is now ${shell}`);
     await wait(TOUR_STEP_MS);
   }
+  if (touring) {
+    log('tour', 'your turn: try View › Shell');
+    logEl.classList.add('ping');
+  }
+  logEl.classList.remove('touring');
   handOver();
 }
 
 // ---- The intro ------------------------------------------------------------------------
 
 // Each line is fully in view for LINE_MS before the next comes, and the last holds for
-// LAST_MS. Any key or press ends it at once, with a short fade.
-const LINE_MS = 1800;
-const LAST_MS = 1500;
+// LAST_MS. Any key or press ends it at once, with a short fade; it waits for the core,
+// saying how far it has come, so the desktop never comes up empty.
+const LINE_MS = 1100;
+const LAST_MS = 1600;
+const FADE_MS = 600;
 async function intro() {
   const el = $('intro');
   introPlaying = true;
@@ -168,12 +180,31 @@ async function intro() {
     el.append(p);
     return p;
   });
-  await pause(150);
-  for (const [i, p] of ps.entries()) {
-    if (skipped) break;
-    p.classList.add('shown');
-    // The line's own fade-in, then its time to be read.
-    await pause(700 + (i === ps.length - 1 ? LAST_MS : LINE_MS));
+  const hint = $('intro-hint');
+  const status = $('intro-status');
+  if (phone) hint.textContent = 'Tap to skip';
+  setTimeout(() => hint.classList.add('shown'), reduced ? 0 : 1500);
+  if (reduced) {
+    // No motion: the lines all at once, for a moment or until a key.
+    ps.forEach((p) => p.classList.add('shown'));
+    await pause(3000);
+  } else {
+    await pause(150);
+    for (const [i, p] of ps.entries()) {
+      if (skipped) break;
+      p.classList.add('shown');
+      await pause(FADE_MS + (i === ps.length - 1 ? LAST_MS : LINE_MS));
+    }
+  }
+  // The core, if it isn't there yet: how much of it has come.
+  let ready = false;
+  globalThis.pbcoreStarted.then(() => { ready = true; }, () => { ready = true; });
+  while (!ready) {
+    status.classList.add('shown');
+    const got = globalThis.pbcoreBytes || 0;
+    const all = globalThis.pbcoreTotal || 0;
+    status.textContent = all ? `core.wasm · ${(got / 1048576).toFixed(1)} of ${(all / 1048576).toFixed(1)} MB` : 'core.wasm · starting';
+    await wait(120);
   }
   removeEventListener('pointerdown', skip, true);
   removeEventListener('keydown', skip, true);
@@ -196,6 +227,7 @@ dlButton.addEventListener('click', (e) => {
 });
 const closeDownload = () => { dlMenu.hidden = true; dlButton.setAttribute('aria-expanded', 'false'); };
 document.addEventListener('click', closeDownload);
+addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDownload(); });
 
 // ---- Full screen ----------------------------------------------------------------------
 
@@ -215,31 +247,47 @@ fsShow();
 // ---- Start ----------------------------------------------------------------------------
 
 (async () => {
-  // The intro plays on every load while the core starts; one who asked for less motion
-  // goes straight to the desktop and skips the tour.
-  const introDone = !reduced ? intro() : ($('intro').remove(), Promise.resolve());
+  // The intro plays on every load while the core starts; one who asked for less motion sees
+  // its lines still, then the desktop, with no tour.
+  const introDone = intro();
   let started = true;
   try {
     await globalThis.pbcoreStarted;
   } catch (e) {
     started = false;
-    log('system', 'Project B could not start here: ' + e);
   }
   await introDone;
+  if (!started) {
+    // The page on its own, with a word on why.
+    location.replace('mock-page.html?nocore');
+    return;
+  }
+  log('core', `Go, ${Math.round((globalThis.pbcoreTotal || 0) / 1048576)} MB of WebAssembly, started in ${globalThis.pbcoreStartMs} ms`);
   desktop.hidden = false;
   if (!reduced) desktop.classList.add('arriving');
-  if (!started) return;
   osFrame.src = 'os.html' + (phone ? '?phone' : '');
   await new Promise((r) => osFrame.addEventListener('load', r, { once: true }));
   osDoc().addEventListener('click', closeDownload);
-  if (reduced) {
+  // The other shells, fetched while the first one shows, so switching is quick.
+  for (const id of ['glide', 'terminal', 'fox', 'minimal']) {
+    for (const ext of ['js', 'css']) {
+      const l = document.createElement('link');
+      l.rel = 'prefetch';
+      l.href = `shell/${id}/${id}.${ext}`;
+      document.head.append(l);
+    }
+  }
+  if (reduced || phone) {
+    // A phone opens the app by itself, as no tour does it there.
+    if (phone && !reduced) await wait(600);
     osDoc().getElementById('app-icon').click();
     return;
   }
   if (!touring) return;
-  await wait(1500);
+  await wait(500);
   if (!touring) return;
-  if (!(await openByPointer())) return;
+  logEl.classList.add('touring');
+  if (!(await openByPointer())) { logEl.classList.remove('touring'); return; }
   await wait(1800);
   await tour();
 })();

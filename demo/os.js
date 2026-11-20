@@ -130,6 +130,8 @@
         w.radius = m.cornerRadius || 0;
         if (!phone) el.style.borderRadius = w.core && w.core.zoomed ? '0' : w.radius + 'px';
         w.colors = { light: m.frameColor, dark: m.frameDark || m.frameColor };
+        // Where the window drags, for a double-click on its empty title area.
+        w.regions = m.regions || [];
         paintBand();
         const c = m.controls;
         buttons.hidden = phone || !c;
@@ -209,6 +211,20 @@
     addEventListener('resize', () => { for (const id of wins.keys()) place(id); });
     // A press in a window brings it to the front.
     os.on('press', (frame) => { for (const w of wins.values()) if (w.frame === frame) raise(w); });
+    // A double-click on a window's empty title area zooms it, as the Mac's title bar does:
+    // where the window drags, in the window page or its shell, which both cover the window
+    // from its corner. A page's own double-clicks are the page's.
+    os.on('dblclick', ({ frame, win, e }) => {
+      if (phone) return;
+      for (const [id, w] of wins) {
+        if (w.frame !== frame) continue;
+        const fe = win.frameElement;
+        if (win !== frame.contentWindow && !(fe && fe.classList.contains('shell'))) return;
+        if (e.target.closest && e.target.closest('button, a, input, textarea, select, [role=tab], [role=button], [contenteditable]')) return;
+        const r = (w.regions || []).find((g) => e.clientX >= g.x && e.clientX < g.x + g.w && e.clientY >= g.y && e.clientY < g.y + g.h);
+        if (r && r.area === 'drag') button(id, 'zoom', e);
+      }
+    });
 
     // activate is the icon clicked, as the Dock does: the app opens; minimised windows
     // come back; with no window open, the app is asked for a new one.
@@ -424,14 +440,19 @@
   // did something (the web demo's stage stops its tour).
   function inputPart() {
     const hooked = new WeakSet();
+    // Each document once: a frame that loads another page (the window's shell, on a change
+    // of shell) keeps its window but gets a new document, whose listeners are new.
     function hook(win, frame) {
-      if (!win || hooked.has(win)) return;
-      hooked.add(win);
+      let doc;
+      try { doc = win && win.document; } catch { return; }
+      if (!doc || hooked.has(doc)) return;
+      hooked.add(doc);
       win.addEventListener('pointerdown', (e) => {
         if (frame) os.emit('press', frame);
         if (e.isTrusted) os.tell({ t: 'visitor' });
       }, true);
       win.addEventListener('keydown', (e) => { if (e.isTrusted) os.tell({ t: 'visitor' }); }, true);
+      if (frame) win.addEventListener('dblclick', (e) => os.emit('dblclick', { frame, win, e }), true);
       const watch = (doc) => {
         const each = (f) => {
           f.addEventListener('load', () => hook(f.contentWindow, frame || f));

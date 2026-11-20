@@ -3,6 +3,11 @@
 // every other request goes out as usual.
 (() => {
   const top = window.top;
+  // A page opened on its own, with no core in the page above it (the homepage's content
+  // page, mock-page.html, as a no-script visitor or a curious one opens it), goes out as usual.
+  let alone = false;
+  try { alone = !top.pbcore && !top.pbcoreStarted; } catch { alone = true; }
+  if (alone) return;
   const root = new URL('.', top.location.href).pathname;
   const ours = /^(mock\/menu|mock\/menulist|mock\/choose|mock\/windows|mock\/mode|mock\/window\/size|mock\/origin|mock\/fire|mock\/extensions\/fire|mock\/window\/events|mock\/events|mock\/thumb\/\d+|[a-z]+\/send|[a-z]+\/events)$/;
 

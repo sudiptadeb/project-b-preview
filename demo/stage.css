@@ -29,11 +29,19 @@ button { font: inherit; color: inherit; }
 #intro p {
   margin: 0; font-weight: 650; letter-spacing: -0.02em; font-size: clamp(22px, 3.2vw, 38px); line-height: 1.18;
   opacity: 0; transform: translateY(10px); filter: blur(8px);
-  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.9s ease;
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.6s ease;
+  text-wrap: balance;
 }
 #intro p.shown { opacity: 1; transform: none; filter: none; }
 #intro p + p { color: var(--brand-a); }
 @media (prefers-color-scheme: dark) { #intro p + p { color: var(--mint); } }
+#intro-status, #intro-hint {
+  position: absolute; left: 0; right: 0; text-align: center; opacity: 0; transition: opacity 0.5s ease;
+  font-size: 12.5px; color: var(--muted);
+}
+#intro-status { bottom: 26%; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+#intro-hint { bottom: 28px; }
+#intro-status.shown, #intro-hint.shown { opacity: 1; }
 #intro.leaving { opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
 #intro.leaving-fast { opacity: 0; transition: opacity 0.25s ease; pointer-events: none; }
 
@@ -64,19 +72,30 @@ button { font: inherit; color: inherit; }
 
 /* The log: what the visitor did, what the OS did, and what the app asked of the engine. */
 #log {
-  position: absolute; left: 12px; bottom: 12px; z-index: 4; width: min(400px, calc(100vw - 24px)); max-height: 32vh;
+  position: absolute; left: 12px; bottom: 12px; z-index: 4; width: min(400px, calc(100vw - 24px)); max-height: 22vh;
   display: flex; flex-direction: column; overflow: hidden; border-radius: 12px; font-size: 12.5px;
   background: var(--log); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16), 0 0 0 0.5px var(--log-line);
   backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
 }
 #log-toggle { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 0; background: none; font-weight: 600; text-align: left; cursor: default; }
 #log-toggle .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 2px rgba(95, 245, 207, 0.25); }
-#log-lines { margin: 0; padding: 0 12px 10px; list-style: none; overflow-y: auto; font: 11.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+#log-lines { margin: 0; padding: 0 12px 10px; list-style: none; overflow-y: auto; font: 12.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
 #log-lines li { padding: 2px 0; color: var(--muted); border-top: 1px solid var(--log-line); }
 #log-lines li b { font-weight: 600; color: var(--text); }
 #log-lines li.fresh { animation: fresh 1.2s ease; }
 @keyframes fresh { from { background: rgba(95, 245, 207, 0.25); } to { background: transparent; } }
 #log.collapsed #log-lines { display: none; }
+/* While the tour runs, only its last three lines, out of the window's way. */
+#log.touring #log-lines li:not(:nth-last-child(-n+3)) { display: none; }
+#log.ping .dot { animation: ping 1.2s ease 3; }
+@keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(95, 245, 207, 0.7); } 100% { box-shadow: 0 0 0 10px rgba(95, 245, 207, 0); } }
+/* Where the keyboard is. */
+#download-button:focus-visible, #fullscreen:focus-visible, #log-toggle:focus-visible, .menu a:focus-visible {
+  outline: 2px solid var(--brand-a); outline-offset: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  #download-button:focus-visible, #fullscreen:focus-visible, #log-toggle:focus-visible, .menu a:focus-visible { outline-color: var(--mint); }
+}
 #log.collapsed { width: auto; }
 
 /* The pointer that opens the app and tours its shells, until the visitor takes over. */
@@ -88,6 +107,7 @@ button { font: inherit; color: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   #intro p { transition: none; transform: none; filter: none; }
+  #log.ping .dot { animation: none; }
   #pointer { transition: none; }
 }
 /* On a phone the log sits in the status bar, out of the app's way. */
