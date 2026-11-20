@@ -5,168 +5,309 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Project B</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 20 20%27%3E%3Crect width=%2720%27 height=%2720%27 rx=%275%27 fill=%27%2323272f%27/%3E%3Crect x=%275%27 y=%275.5%27 width=%2710%27 height=%279%27 rx=%271.8%27 fill=%27none%27 stroke=%27white%27 stroke-width=%271.4%27/%3E%3Cpath d=%27M8.6 5.5v9%27 stroke=%27white%27 stroke-width=%271.4%27/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22%3E%3Cdefs%3E%3ClinearGradient%20id=%22g%22%20x1=%220%22%20y1=%220%22%20x2=%221%22%20y2=%221%22%3E%3Cstop%20offset=%220%22%20stop-color=%22%230d7d86%22/%3E%3Cstop%20offset=%221%22%20stop-color=%22%2305515a%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width=%22100%22%20height=%22100%22%20rx=%2222%22%20fill=%22url%28%23g%29%22/%3E%3Cpath%20d=%22M28,20%20H53%20Q71,20%2071,36%20Q71,45%2063,48.5%20Q75,52%2075,64%20Q75,80%2055,80%20H28%20Z%22%20fill=%22%23fff%22/%3E%3Ccircle%20cx=%2228%22%20cy=%2220%22%20r=%225%22%20fill=%22%235ff5cf%22/%3E%3Ccircle%20cx=%2228%22%20cy=%2280%22%20r=%225%22%20fill=%22%235ff5cf%22/%3E%3C/svg%3E">
 <meta name="description" content="A browser you shape to fit, for Mac, Android and Linux. Free and open source.">
 <style>
 /* The demo's page: Project B's homepage, which every tab of the demo shows, as the demo has
-   no web engine to load another (core/cmd/webdemo). The homepage's own words follow.
-   Project B's homepage. The neutral tones of the app's design system (docs/design-system.md),
-   light and dark by the reader's setting. Every link to this site is relative, so it moves to
-   another address unchanged; the downloads point at GitHub's latest Stable release. */
+   no web engine to load another (core/cmd/webdemo). The brand's colours, the logo's deep teal
+   and mint, light and dark by the reader's setting. Links out open in the reader's own browser;
+   the downloads point at GitHub's latest Stable release. */
 :root {
-  --surface: #ffffff; --bar: #f5f6f7; --text: #1f1f1f; --muted: #5c6270; --line: rgba(15, 20, 25, 0.1);
-  --accent: #23272f; --on-accent: #ffffff; --icon: #4a4f58; --tint: #eef0f3;
-  --shadow: 0 8px 28px rgba(16, 24, 40, 0.14), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --bg: #f4f7f7; --surface: #ffffff; --raised: #ffffff; --text: #10191b; --muted: #55646a;
+  --faint: #8a979b; --line: rgba(5, 81, 90, 0.13); --line-strong: rgba(5, 81, 90, 0.26);
+  --grid: rgba(13, 125, 134, 0.07); --brand: #0d7d86; --brand-deep: #05515a; --mint: #5ff5cf;
+  --ink: #0a6e76; --on-brand: #ffffff; --chip: rgba(13, 125, 134, 0.08); --code: #eef4f4;
+  --shadow: 0 1px 2px rgba(5, 40, 45, 0.06), 0 12px 32px rgba(5, 40, 45, 0.1);
+  --shadow-big: 0 2px 6px rgba(5, 40, 45, 0.08), 0 30px 70px rgba(5, 40, 45, 0.18);
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --surface: #2a2c30; --bar: #1f2023; --text: #e8eaed; --muted: #9aa0a6; --line: rgba(255, 255, 255, 0.12);
-    --accent: #e7eaf2; --on-accent: #1f1f1f; --icon: #b7bfd3; --tint: #303238;
-    --shadow: 0 8px 28px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+    --bg: #0a1113; --surface: #0f1a1d; --raised: #132226; --text: #e4eeee; --muted: #98aeb2;
+    --faint: #6d8388; --line: rgba(95, 245, 207, 0.11); --line-strong: rgba(95, 245, 207, 0.24);
+    --grid: rgba(95, 245, 207, 0.045); --ink: #5ff5cf; --chip: rgba(95, 245, 207, 0.09); --code: #0b1517;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.35);
+    --shadow-big: 0 2px 6px rgba(0, 0, 0, 0.4), 0 30px 70px rgba(0, 0, 0, 0.55);
   }
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bar); color: var(--text); font: 16px/1.55 -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.6 -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
 a { color: inherit; }
-.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
-header { display: flex; align-items: center; gap: 12px; height: 64px; }
-.logo { width: 32px; height: 32px; border-radius: 9px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; }
-.logo svg { width: 18px; height: 18px; }
-header b { font-size: 17px; }
-nav { margin-left: auto; display: flex; gap: 20px; font-size: 15px; }
+.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 32px); }
+
+/* Header */
+header { display: flex; align-items: center; gap: 10px; height: 64px; }
+header .mark { width: 28px; height: 28px; border-radius: 7px; display: block; }
+header b { font-size: 16px; letter-spacing: -0.01em; }
+nav { margin-left: auto; display: flex; gap: 22px; font-size: 14px; }
 nav a { text-decoration: none; color: var(--muted); }
 nav a:hover { color: var(--text); }
-.hero { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 56px 0 24px; text-align: center; }
-h1 { font-size: 52px; line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
-.tag { font-size: 21px; color: var(--muted); margin: 0 auto; max-width: 34ch; }
-.note { font-size: 14px; color: var(--muted); margin: 0; }
-.downloads { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 12px; }
-.dl { display: flex; align-items: center; gap: 12px; min-width: 220px; padding: 12px 18px; border-radius: 12px; text-decoration: none; text-align: left; background: var(--surface); border: 1px solid var(--line); }
-.dl.primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }
-.dl svg { width: 26px; height: 26px; flex: none; }
+
+/* Hero */
+.hero { position: relative; padding: clamp(40px, 9vw, 96px) 0 clamp(32px, 6vw, 64px); text-align: center; }
+.hero .icon { width: clamp(84px, 12vw, 112px); height: auto; display: block; margin: 0 auto 28px; border-radius: 24%; box-shadow: var(--shadow-big); }
+.hero .icon .guide { stroke-dasharray: 200; stroke-dashoffset: 200; animation: draw 1.4s 0.2s ease-out forwards; }
+.hero .icon .pt { transform-box: fill-box; transform-origin: center; transform: scale(0); animation: pop 0.35s ease-out forwards; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes pop { to { transform: scale(1); } }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font: 12px/1 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); }
+.eyebrow::before { content: ""; width: 18px; height: 1px; background: currentColor; }
+h1 { font-size: clamp(38px, 7.2vw, 76px); line-height: 1.02; margin: 14px auto 18px; letter-spacing: -0.035em; font-weight: 750; max-width: 14ch; }
+.hero .tag { font-size: clamp(17px, 2.2vw, 20px); color: var(--muted); margin: 0 auto; max-width: 46ch; }
+.downloads { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 34px 0 18px; }
+.dl { display: flex; align-items: center; gap: 12px; padding: 13px 20px 13px 16px; border-radius: 14px; text-decoration: none; text-align: left; background: var(--surface); border: 1px solid var(--line-strong); transition: transform 0.15s, box-shadow 0.15s; }
+.dl:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+.dl.primary { background: linear-gradient(135deg, var(--brand), var(--brand-deep)); color: var(--on-brand); border-color: transparent; box-shadow: var(--shadow); }
+.dl svg { width: 24px; height: 24px; flex: none; }
 .dl span { display: flex; flex-direction: column; line-height: 1.25; }
-.dl b { font-size: 16px; font-weight: 600; }
-.dl small { font-size: 13px; opacity: 0.75; }
-.version { font-size: 14px; color: var(--muted); }
+.dl b { font-size: 15px; font-weight: 600; }
+.dl small { font-size: 12.5px; opacity: 0.75; }
+.version { font-size: 13px; color: var(--faint); }
 .version a { color: var(--muted); }
-section { padding: 80px 0 0; }
-h2 { font-size: 30px; margin: 0 0 8px; letter-spacing: -0.01em; }
-.lead { color: var(--muted); margin: 0 0 28px; max-width: 60ch; }
-.features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-.feature { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
-.feature .ic { width: 40px; height: 40px; border-radius: 11px; background: var(--tint); color: var(--icon); display: grid; place-items: center; margin-bottom: 12px; }
-.feature .ic svg { width: 22px; height: 22px; }
-.feature h3 { margin: 0 0 6px; font-size: 18px; }
-.feature p { margin: 0; color: var(--muted); font-size: 15px; }
-.feature img { display: block; width: 100%; margin-top: 16px; border-radius: 10px; border: 1px solid var(--line); }
-.linux { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 24px 28px; }
-.linux ol { margin: 0; padding-left: 22px; }
-.linux li { margin: 8px 0; }
-code { font: 14px ui-monospace, "SF Mono", Menlo, monospace; background: var(--tint); padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
+.version .chip { display: inline-block; padding: 2px 8px; border-radius: 99px; background: var(--chip); color: var(--ink); margin-right: 6px; }
+
+/* Sections */
+section { padding: clamp(64px, 10vw, 120px) 0 0; }
+.head { max-width: 680px; margin-bottom: clamp(28px, 4vw, 44px); }
+h2 { font-size: clamp(28px, 4.4vw, 44px); line-height: 1.08; margin: 12px 0 14px; letter-spacing: -0.025em; font-weight: 720; }
+.lead { color: var(--muted); margin: 0; font-size: clamp(16px, 1.9vw, 18px); }
+.lead + .lead { margin-top: 12px; }
+
+/* What you're looking at: the layers */
+.layers { display: grid; gap: 10px; position: relative; }
+.layer { display: grid; grid-template-columns: 148px 1fr auto; gap: 18px; align-items: center; padding: 20px 22px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); position: relative; }
+.layer .name { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+.layer .name small { display: block; font: 12px ui-monospace, "SF Mono", Menlo, monospace; color: var(--faint); font-weight: 400; margin-top: 2px; letter-spacing: 0; }
+.layer p { margin: 0; color: var(--muted); font-size: 15px; }
+.layer .state { font: 12px/1 ui-monospace, "SF Mono", Menlo, monospace; padding: 7px 10px; border-radius: 99px; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
+.layer .state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.layer.live .state { background: var(--chip); color: var(--ink); }
+.layer.live .state::before { box-shadow: 0 0 0 0 currentColor; animation: pulse 2s infinite; }
+.layer.stand .state { background: transparent; color: var(--faint); border: 1px dashed var(--line-strong); }
+.layer.stand { background: transparent; box-shadow: none; border-style: dashed; border-color: var(--line-strong); }
+.layer.shell { border-color: var(--line-strong); }
+.layer.shell::after { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 3px; background: var(--mint); }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(95, 245, 207, 0.6); } 70% { box-shadow: 0 0 0 7px rgba(95, 245, 207, 0); } 100% { box-shadow: 0 0 0 0 rgba(95, 245, 207, 0); } }
+.try { margin-top: 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.try div { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); font-size: 14.5px; color: var(--muted); background: color-mix(in srgb, var(--surface) 60%, transparent); }
+.try b { color: var(--text); font-weight: 600; display: block; margin-bottom: 2px; }
+kbd { font: 12.5px ui-monospace, "SF Mono", Menlo, monospace; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--line-strong); border-bottom-width: 2px; background: var(--surface); color: var(--text); }
+
+/* Shapes */
+.shapes { border-radius: 20px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-big); overflow: hidden; }
+.picker { display: flex; gap: 4px; padding: 10px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; }
+.picker button { font: inherit; font-size: 14px; padding: 8px 14px; border-radius: 10px; border: 0; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.picker button[aria-pressed="true"] { background: var(--chip); color: var(--ink); font-weight: 600; }
+.picker button:hover { color: var(--text); }
+.stage { position: relative; aspect-ratio: 16 / 10; background: var(--bg); }
+.stage picture { position: absolute; inset: 0; opacity: 0; transition: opacity 0.45s ease; }
+.stage picture.on { opacity: 1; }
+.stage img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
+.caption { display: flex; gap: 14px; align-items: baseline; padding: 16px 20px 18px; border-top: 1px solid var(--line); min-height: 64px; }
+.caption b { font-size: 16px; white-space: nowrap; }
+.caption span { color: var(--muted); font-size: 15px; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+.cards.two { grid-template-columns: repeat(2, 1fr); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; }
+.card .ic { width: 38px; height: 38px; border-radius: 10px; background: var(--chip); color: var(--ink); display: grid; place-items: center; margin-bottom: 14px; }
+.card .ic svg { width: 21px; height: 21px; }
+.card h3 { margin: 0 0 6px; font-size: 17px; letter-spacing: -0.01em; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+.card img { display: block; width: 100%; margin-top: 16px; border-radius: 10px; border: 1px solid var(--line); }
+.card.quiet { background: transparent; box-shadow: none; }
+pre { margin: 14px 0 0; padding: 12px 14px; border-radius: 10px; background: var(--code); border: 1px solid var(--line); font: 12.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace; color: var(--muted); overflow-x: auto; }
+pre .k { color: var(--ink); }
+
+/* How it's built */
+.built { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--line-strong); }
+.built > div { padding: 22px 22px 0 0; }
+.built > div + div { padding-left: 22px; border-left: 1px solid var(--line); }
+.built .n { font: 12px ui-monospace, "SF Mono", Menlo, monospace; color: var(--ink); }
+.built b { display: block; font-size: 17px; margin: 6px 0 6px; letter-spacing: -0.01em; }
+.built p { margin: 0; color: var(--muted); font-size: 15px; }
+.channels { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px; }
+.channels div { flex: 1 1 260px; padding: 16px 18px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
+.channels b { font-size: 15px; }
+.channels p { margin: 4px 0 0; color: var(--muted); font-size: 14.5px; }
+
+/* Linux */
+.linux { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 8px 26px; box-shadow: var(--shadow); }
+.linux ol { margin: 0; padding: 0; list-style: none; counter-reset: s; }
+.linux li { counter-increment: s; display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.linux li:last-child { border-bottom: 0; }
+.linux li::before { content: counter(s); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 600 13px ui-monospace, "SF Mono", Menlo, monospace; background: var(--chip); color: var(--ink); }
+code { font: 13.5px ui-monospace, "SF Mono", Menlo, monospace; background: var(--code); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; white-space: nowrap; }
 #flatpak-cmd { white-space: normal; overflow-wrap: anywhere; }
-.why { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.why div { border-top: 2px solid var(--line); padding-top: 12px; }
-.why b { display: block; margin-bottom: 4px; }
-.why p { margin: 0; color: var(--muted); font-size: 15px; }
-footer { margin-top: 88px; padding: 28px 0 40px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 20px; }
+
+footer { margin-top: clamp(72px, 10vw, 120px); padding: 28px 0 44px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; }
+footer .mark { width: 20px; height: 20px; border-radius: 5px; }
 footer a { color: var(--muted); }
-.elsewhere { margin: 16px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--tint); color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
-@media (max-width: 720px) {
-  .wrap { padding: 0 16px; }
+.elsewhere { margin: 16px 0 0; padding: 10px 14px; border-radius: 10px; background: var(--chip); color: var(--muted); font-size: 14px; overflow-wrap: anywhere; border: 1px solid var(--line); }
+
+/* Scroll-in, only where motion is welcome */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.reveal.seen { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .hero .icon .guide { animation: none; stroke-dashoffset: 0; }
+  .hero .icon .pt { animation: none; transform: none; }
+  .layer.live .state::before { animation: none; }
+  .stage picture { transition: none; }
+}
+
+@media (max-width: 760px) {
   nav a.opt { display: none; }
-  .hero { padding-top: 32px; }
-  h1 { font-size: 38px; }
-  .tag { font-size: 18px; }
   .dl { width: 100%; }
-        section { padding-top: 56px; }
-  h2 { font-size: 24px; }
-  .features, .why { grid-template-columns: 1fr; }
-  .linux { padding: 20px; }
+  .layer { grid-template-columns: 1fr; gap: 8px; padding: 18px; }
+  .layer .state { justify-self: start; }
+  .try, .cards, .cards.two, .built { grid-template-columns: 1fr; }
+  .built > div, .built > div + div { padding: 18px 0 0; border-left: 0; }
+  .built > div + div { border-top: 1px solid var(--line); margin-top: 18px; }
+  .caption { flex-direction: column; gap: 2px; }
+  .picker { flex-wrap: wrap; }
+  .picker button { padding: 7px 11px; font-size: 13.5px; }
+  .linux { padding: 4px 18px; }
 }
 </style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-mark" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5"/><path d="M8 3.5v13"/></symbol>
   <symbol id="i-apple" viewBox="0 0 24 24" fill="currentColor"><path d="M16.4 12.6c0-2.4 2-3.5 2-3.6-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.8-.8-3-.8-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.7zM14.1 5.6c.6-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4z"/></symbol>
   <symbol id="i-android" viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 9.5l1.7-3a.4.4 0 00-.7-.4l-1.7 3a10.5 10.5 0 00-9.8 0l-1.7-3a.4.4 0 00-.7.4l1.7 3A9.6 9.6 0 002 17h20a9.6 9.6 0 00-4.4-7.5zM7.5 14.4a1 1 0 110-2 1 1 0 010 2zm9 0a1 1 0 110-2 1 1 0 010 2z"/></symbol>
   <symbol id="i-linux" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 9l3 2.5L7 14M12 14h5"/></symbol>
-  <symbol id="i-shapes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16M3 9h6"/></symbol>
   <symbol id="i-keys" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M8 14h8"/></symbol>
   <symbol id="i-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></symbol>
   <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></symbol>
-  <symbol id="i-sync" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></symbol>
+  <symbol id="i-sync" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 00-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0014.3 4.9L20 16M20 20v-4h-4"/></symbol>
   <symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2 2M14 9l2 2"/></symbol>
   <symbol id="i-import" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
   <symbol id="i-spaces" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="12" height="10" rx="2"/><path d="M9 19h10a2 2 0 002-2V9"/></symbol>
+  <symbol id="logo-small" viewBox="0 0 100 100"><defs><linearGradient id="lg-s" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d7d86"/><stop offset="1" stop-color="#05515a"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#lg-s)"/><path d="M28,20 H53 Q71,20 71,36 Q71,45 63,48.5 Q75,52 75,64 Q75,80 55,80 H28 Z" fill="#fff"/><circle cx="28" cy="20" r="5" fill="#5ff5cf"/><circle cx="28" cy="80" r="5" fill="#5ff5cf"/></symbol>
 </svg>
 
 <div class="wrap">
   <p class="elsewhere" hidden></p>
   <header>
-    <span class="logo"><svg><use href="#i-mark"/></svg></span><b>Project B</b>
-    <nav><a class="opt" href="#features">Features</a><a class="opt" href="#linux">Linux</a><a href="https://github.com/sudiptadeb/project-b">GitHub</a></nav>
+    <svg class="mark" aria-hidden="true"><use href="#logo-small"/></svg><b>Project B</b>
+    <nav><a class="opt" href="#looking">How it works</a><a class="opt" href="#shapes">Shapes</a><a class="opt" href="#linux">Linux</a><a href="https://github.com/sudiptadeb/project-b">GitHub</a></nav>
   </header>
 
   <div class="hero">
-    <h1>Project B</h1>
-    <p class="tag">A browser you shape to fit.</p>
-    <p class="note">Free and open source. An experiment in active development, used every day.</p>
+    <svg class="icon" viewBox="0 0 100 100" role="img" aria-label="Project B">
+      <defs><linearGradient id="lg-h" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d7d86"/><stop offset="1" stop-color="#05515a"/></linearGradient><pattern id="lg-grid" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M8,0 V8 H0" fill="none" stroke="#fff" stroke-width=".35" opacity=".22"/></pattern></defs>
+      <rect width="100" height="100" rx="22" fill="url(#lg-h)"/><rect width="100" height="100" rx="22" fill="url(#lg-grid)"/>
+      <g stroke="#fff" stroke-width=".8" opacity=".45" fill="none"><path class="guide" d="M32,10 V90"/><path class="guide" d="M10,24 H90"/><path class="guide" d="M10,48 H90"/><path class="guide" d="M10,76 H90"/><circle class="guide" cx="54" cy="36" r="12.5"/><circle class="guide" cx="56" cy="62" r="14.5"/></g>
+      <path d="M32,24 H52 Q67,24 67,37 Q67,45 60,48 Q71,51 71,63 Q71,76 54,76 H32 Z" fill="#fff"/>
+      <g fill="#5ff5cf"><circle class="pt" style="animation-delay:1.1s" cx="32" cy="24" r="2.6"/><circle class="pt" style="animation-delay:1.2s" cx="52" cy="24" r="2.6"/><circle class="pt" style="animation-delay:1.3s" cx="60" cy="48" r="2.6"/><circle class="pt" style="animation-delay:1.4s" cx="54" cy="76" r="2.6"/><circle class="pt" style="animation-delay:1.5s" cx="32" cy="76" r="2.6"/></g>
+    </svg>
+    <span class="eyebrow">Project B</span>
+    <h1>A browser you shape to fit.</h1>
+    <p class="tag">Free and open source. An experiment, used every day.</p>
     <div class="downloads">
       <a class="dl primary" data-os="mac" href="https://github.com/sudiptadeb/project-b/releases/latest/download/Project-B.dmg"><svg><use href="#i-apple"/></svg><span><b>Download for Mac</b><small>Apple silicon · DMG</small></span></a>
       <a class="dl" data-os="android" href="https://github.com/sudiptadeb/project-b/releases/latest/download/Project-B.apk"><svg><use href="#i-android"/></svg><span><b>Download for Android</b><small>arm64 phones · APK</small></span></a>
       <a class="dl" data-os="linux" href="#linux"><svg><use href="#i-linux"/></svg><span><b>Install on Linux</b><small>arm64 preview · Flatpak</small></span></a>
     </div>
-    <p class="version">Stable 0.3.8 · <a href="https://github.com/sudiptadeb/project-b/releases">Dev builds and older releases</a></p>
+    <p class="version"><span class="chip mono">Stable 0.3.8</span><a href="https://github.com/sudiptadeb/project-b/releases">Dev builds and older releases</a></p>
   </div>
 
-
-  <section id="features">
-    <h2>Shape it your way</h2>
-    <p class="lead">Pick the layout that suits how you work, then change anything in it.</p>
-    <div class="features">
-      <div class="feature"><span class="ic"><svg><use href="#i-shapes"/></svg></span><h3>Five shapes, one browser</h3><p>Tabs down the side, a command bar, a terminal's splits, or almost nothing at all. Switch in Settings, and your tabs stay where they were.</p></div>
-      <div class="feature"><span class="ic"><svg><use href="#i-keys"/></svg></span><h3>Every key and menu</h3><p>Change any keyboard shortcut, and what the menu holds.</p></div>
-      <div class="feature"><span class="ic"><svg><use href="#i-spark"/></svg></span><h3>Sparks</h3><p>Small scripts of your own that change how a site looks or works, on the sites you choose.</p></div>
-      <div class="feature"><span class="ic"><svg><use href="#i-spaces"/></svg></span><h3>Workspaces</h3><p>Keep work and home apart. Each workspace has its own tabs, and switching is one click.</p></div>
+  <section id="looking" class="reveal">
+    <div class="head">
+      <span class="eyebrow">01 · What you're looking at</span>
+      <h2>You're already using it.</h2>
+      <p class="lead">The tabs, the address field and the menus around this page are Project B's own interface, the shell. It's a web page, which is why it can run here. Behind it, Project B's Go core is running too, compiled to WebAssembly, in this tab. Only the part that draws web pages is a stand-in.</p>
+    </div>
+    <div class="layers">
+      <div class="layer live shell"><div class="name">The shell<small>Vue, Svelte · a web page</small></div><p>Everything you see and press: tabs, the address field, menus, Settings. You choose which shell, or write your own.</p><span class="state">running in this tab</span></div>
+      <div class="layer live"><div class="name">The core<small>Go · WebAssembly here</small></div><p>Decides everything that isn't drawing: tabs, history, bookmarks, settings, passwords, updates. The same Go code as the app you download.</p><span class="state">running in this tab</span></div>
+      <div class="layer stand"><div class="name">The engine<small>Chromium · C++</small></div><p>Draws the web pages. In the app it's Chromium's engine as it comes, not a patched copy of all of Chrome.</p><span class="state">a stand-in here</span></div>
+    </div>
+    <div class="try">
+      <div><b>Open a tab</b><span class="k-new"><kbd>Ctrl</kbd> <kbd>T</kbd></span>, or the + in the tab list.</div>
+      <div><b>Change its shape</b>View, then Shell, in the menu bar.</div>
+      <div><b>Look around</b>Settings, history, bookmarks: all real, all in this tab.</div>
     </div>
   </section>
 
-  <section id="everyday">
-    <h2>The everyday things</h2>
-    <p class="lead">What you'd expect from a browser, done carefully.</p>
-    <div class="features">
-      <div class="feature"><span class="ic"><svg><use href="#i-import"/></svg></span><h3>Bring your passwords over</h3><p>Import passwords, bookmarks and history from another browser on your Mac. Nothing leaves it. Show or copy a password in one press.</p><img src="shots/passwords.png" alt="Passwords in Settings: one row a login, with Show and Copy"></div>
-      <div class="feature"><span class="ic"><svg><use href="#i-key"/></svg></span><h3>Passkeys</h3><p>Sites save their passkeys in Project B, and you sign in with Touch ID or your phone's screen lock.</p></div>
-      <div class="feature"><span class="ic"><svg><use href="#i-shield"/></svg></span><h3>Blocking, per site</h3><p>Block ads, or links to other sites, for each site from the address field.</p></div>
-      <div class="feature"><span class="ic"><svg><use href="#i-sync"/></svg></span><h3>Sync, if you want it</h3><p>Bookmarks, history, passwords and passkeys, through a sync server you run, encrypted before they leave your device.</p></div>
+  <section id="shapes" class="reveal">
+    <div class="head">
+      <span class="eyebrow">02 · Shape it your way</span>
+      <h2>Five shapes. One browser.</h2>
+      <p class="lead">Each shell is a different way of working, over the same tabs, history and settings. Switch any time, and everything stays where it was.</p>
+    </div>
+    <div class="shapes">
+      <div class="picker" role="group" aria-label="Shells"></div>
+      <div class="stage"></div>
+      <div class="caption"><b></b><span></span></div>
+    </div>
+    <div class="cards">
+      <div class="card"><span class="ic"><svg><use href="#i-keys"/></svg></span><h3>Every key and menu</h3><p>Change any keyboard shortcut, and what the menus hold.</p></div>
+      <div class="card"><span class="ic"><svg><use href="#i-spaces"/></svg></span><h3>Workspaces</h3><p>Keep work and home apart. Each workspace has its own tabs, and switching is one click.</p></div>
+      <div class="card"><span class="ic"><svg><use href="#i-spark"/></svg></span><h3>Sparks</h3><p>Small scripts of your own that change how a site looks or works, on the sites you choose.</p>
+<pre><span class="k">// ==UserScript==</span>
+<span class="k">// @name</span>   Wider articles
+<span class="k">// @match</span>  https://example.com/*
+<span class="k">// ==/UserScript==</span></pre></div>
     </div>
   </section>
 
-  <section id="linux">
-    <h2>Install on Linux</h2>
-    <p class="lead">A preview, for arm64. It installs as a Flatpak.</p>
+  <section id="everyday" class="reveal">
+    <div class="head">
+      <span class="eyebrow">03 · The everyday things</span>
+      <h2>Done carefully.</h2>
+      <p class="lead">What you'd expect from a browser, without the parts you wouldn't.</p>
+    </div>
+    <div class="cards two">
+      <div class="card"><span class="ic"><svg><use href="#i-import"/></svg></span><h3>Bring your passwords over</h3><p>Import passwords, bookmarks and history from another browser on your Mac. Nothing leaves it. Show or copy a password in one press.</p><img src="shots/passwords.png" alt="Passwords in Settings: one row a login, with Show and Copy"></div>
+      <div class="card"><span class="ic"><svg><use href="#i-key"/></svg></span><h3>Passkeys</h3><p>Sites save their passkeys in Project B, and you sign in with Touch ID or your phone's screen lock.</p></div>
+      <div class="card"><span class="ic"><svg><use href="#i-shield"/></svg></span><h3>Blocking, per site</h3><p>Block ads, or links to other sites, for each site from the address field.</p></div>
+      <div class="card quiet"><span class="ic"><svg><use href="#i-sync"/></svg></span><h3>Sync, if you want it</h3><p>Bookmarks, history, passwords and passkeys, through a sync server you run, encrypted before they leave your device.</p></div>
+    </div>
+  </section>
+
+  <section id="built" class="reveal">
+    <div class="head">
+      <span class="eyebrow">04 · How it's built</span>
+      <h2>Small, plain and open.</h2>
+      <p class="lead">Most browsers carry patches on all of Chrome. Project B starts a layer lower, with Chromium's engine as it comes and everything above it new.</p>
+    </div>
+    <div class="built">
+      <div><span class="n">engine</span><b>Chromium, as it comes</b><p>The engine that draws pages. Chrome's own interface isn't in it; everything you see is new.</p></div>
+      <div><span class="n">core</span><b>A small core in Go</b><p>Tabs, profiles, history, bookmarks and updates in plain Go, tested on its own.</p></div>
+      <div><span class="n">licence</span><b>Open source, MIT</b><p>Every line is on <a href="https://github.com/sudiptadeb/project-b">GitHub</a>, to read, change or build on.</p></div>
+    </div>
+    <div class="channels">
+      <div><b>Stable</b><p>Each release after its full tests. The app updates itself when one comes out.</p></div>
+      <div><b>Dev</b><p>Each change as it lands, before its full tests. Choose in Settings.</p></div>
+    </div>
+  </section>
+
+  <section id="linux" class="reveal">
+    <div class="head">
+      <span class="eyebrow">05 · Linux</span>
+      <h2>Install on Linux.</h2>
+      <p class="lead">A preview, for arm64. It installs as a Flatpak.</p>
+    </div>
     <div class="linux">
       <ol>
-        <li>On Ubuntu, first: <code>sudo apt install flatpak</code>. Debian, Fedora, Arch and KDE's own distros have it, or it's one command away.</li>
-        <li><a href="https://projectb.debkosh.com/project-b.flatpakref">Install Project B</a>: your software centre opens and asks.</li>
-        <li>Or in a terminal: <code id="flatpak-cmd">flatpak install --from https://projectb.debkosh.com/project-b.flatpakref</code></li>
+        <li><span>On Ubuntu, first: <code>sudo apt install flatpak</code>. Debian, Fedora, Arch and KDE's own distros have it, or it's one command away.</span></li>
+        <li><span><a href="https://projectb.debkosh.com/project-b.flatpakref">Install Project B</a>: your software centre opens and asks.</span></li>
+        <li><span>Or in a terminal: <code id="flatpak-cmd">flatpak install --from https://projectb.debkosh.com/project-b.flatpakref</code></span></li>
       </ol>
     </div>
   </section>
 
-  <section>
-    <h2>Built differently</h2>
-    <p class="lead">Most browsers carry patches on all of Chrome. Project B starts a layer lower, with Chromium's engine as it comes and everything above it new.</p>
-    <div class="why">
-      <div><b>A shell anyone can reshape</b><p>Tabs, the address field, menus and settings are one web page. Restyle it, or write your own.</p></div>
-      <div><b>A small core that decides</b><p>Tabs, profiles, history, bookmarks and updates are plain Go, apart from how pages draw.</p></div>
-      <div><b>Updates itself</b><p>Installed copies keep themselves current. Choose Stable, or Dev for each change as it lands.</p></div>
-    </div>
-  </section>
-
   <footer>
+    <svg class="mark" aria-hidden="true"><use href="#logo-small"/></svg>
     <span>Project B · open source under the <a href="https://github.com/sudiptadeb/project-b/blob/main/LICENSE">MIT licence</a></span>
     <a href="https://github.com/sudiptadeb/project-b">Source on GitHub</a>
     <a href="https://github.com/sudiptadeb/project-b/releases/latest">Release notes</a>
@@ -175,7 +316,8 @@ footer a { color: var(--muted); }
 <script>
 // Links out of the page open in the visitor's own browser, beside the demo.
 for (const a of document.querySelectorAll('a[href^="http"]')) { a.target = '_blank'; a.rel = 'noopener'; }
-// The reader's platform's download goes first and filled.
+
+// The reader's platform: its download goes first and filled, and the keys it shows are its own.
 try {
   const ua = navigator.userAgent;
   const os = /Android/.test(ua) ? 'android' : /Mac/.test(ua) ? 'mac' : /Linux/.test(ua) ? 'linux' : '';
@@ -184,7 +326,68 @@ try {
     document.querySelectorAll('.dl').forEach((a) => a.classList.toggle('primary', a === mine));
     mine.parentNode.prepend(mine);
   }
+  if (os === 'mac') document.querySelector('.k-new').innerHTML = '<kbd>⌘</kbd> <kbd>T</kbd>';
+  if (os === 'android') document.querySelector('.try').hidden = true;
 } catch (e) {}
+
+// The shapes: each shell's picture, taken from this demo, light or dark as the reader's is.
+(() => {
+  const shells = [
+    ['standard', 'Standard', 'Tabs down the side or along the top, an address field, and a menu. The familiar one.'],
+    ['glide', 'Glide', 'A command bar for everything, spaces, favourites and split view.'],
+    ['terminal', 'Terminal', 'A strip of windows along the top and a prompt line for the address, like a terminal; split any window into panes.'],
+    ['fox', 'Fox', 'Tabs on top and a toolbar under them, in the classic layout.'],
+    ['minimal', 'Minimal', 'The least it can be: a slim list of tabs, one line for the address, nothing else.'],
+  ];
+  const picker = document.querySelector('.picker');
+  const stage = document.querySelector('.stage');
+  const capB = document.querySelector('.caption b');
+  const capS = document.querySelector('.caption span');
+  const pics = shells.map(([id, name]) => {
+    const p = document.createElement('picture');
+    p.innerHTML = `<source srcset="shots/shell-${id}-dark.jpg" media="(prefers-color-scheme: dark)"><img src="shots/shell-${id}-light.jpg" alt="Project B with the ${name} shell" loading="lazy">`;
+    stage.append(p);
+    return p;
+  });
+  const buttons = shells.map(([id, name], i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = name;
+    b.addEventListener('click', () => { stop(); show(i); });
+    picker.append(b);
+    return b;
+  });
+  let at = 0;
+  function show(i) {
+    at = i;
+    pics.forEach((p, j) => p.classList.toggle('on', j === i));
+    buttons.forEach((b, j) => b.setAttribute('aria-pressed', String(j === i)));
+    capB.textContent = shells[i][1];
+    capS.textContent = shells[i][2];
+  }
+  show(0);
+  // They turn by themselves while in sight, until the reader picks one; never with reduced motion.
+  let timer = null;
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const stop = () => { clearInterval(timer); timer = null; };
+  if (!still && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && timer === null && !picker.dataset.picked) timer = setInterval(() => show((at + 1) % shells.length), 3200);
+      if (!e.isIntersecting) stop();
+    }, { threshold: 0.4 }).observe(stage);
+  }
+  picker.addEventListener('click', () => { picker.dataset.picked = '1'; });
+})();
+
+// Sections rise in as they come into sight.
+(() => {
+  const els = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) { els.forEach((el) => el.classList.add('seen')); return; }
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) { e.target.classList.add('seen'); io.unobserve(e.target); }
+  }, { rootMargin: '0px 0px -8% 0px' });
+  els.forEach((el) => io.observe(el));
+})();
 
 // The demo's side, as dev's mock page speaks it (core/cmd/dev/mock_page.html): this page is
 // one slot of its window, ?slot=<n>, and hears its slot's state, the tab and its address.
@@ -204,6 +407,7 @@ try {
   // A press in the page gives its tab the keyboard, as a click in a real page does.
   addEventListener('pointerdown', () => tab && fire('focusTab', ''), true);
   const elsewhere = document.querySelector('.elsewhere');
+  if (!window.EventSource) return;
   new EventSource(`/mock/events?window=${win}&slot=${slot}`).onmessage = (e) => {
     const m = JSON.parse(e.data);
     if (m.slot !== slot) return;
