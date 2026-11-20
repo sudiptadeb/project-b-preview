@@ -142,6 +142,8 @@ pre .k { color: var(--ink); }
 .linux ol { margin: 0; padding: 0; list-style: none; counter-reset: s; }
 .linux li { counter-increment: s; display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
 .linux li:last-child { border-bottom: 0; }
+.linux li > span { min-width: 0; }
+.linux code { white-space: normal; overflow-wrap: anywhere; }
 .linux li::before { content: counter(s); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 600 13px ui-monospace, "SF Mono", Menlo, monospace; background: var(--chip); color: var(--ink); }
 code { font: 13.5px ui-monospace, "SF Mono", Menlo, monospace; background: var(--code); border: 1px solid var(--line); padding: 1px 6px; border-radius: 6px; white-space: nowrap; }
 #flatpak-cmd { white-space: normal; overflow-wrap: anywhere; }
@@ -157,7 +159,7 @@ footer a { color: var(--muted); }
 .check a { color: var(--ink); }
 h3.sub { font-size: 17px; margin: 40px 0 6px; letter-spacing: -0.01em; }
 h3.sub + .lead { margin-bottom: 16px; }
-.dl[hidden] { display: none; }
+.dl[hidden], .live-only[hidden], .alone-only[hidden] { display: none; }
 .downloads .alts { flex-basis: 100%; font-size: 13.5px; color: var(--muted); margin: 2px 0 0; }
 .downloads .alts a { color: var(--ink); }
 
@@ -222,13 +224,13 @@ h3.sub + .lead { margin-bottom: 16px; }
     <h1>A browser in three separate parts.</h1>
     <p class="tag">Shell, core, renderer. Each one builds, tests and runs on its own. Free and open source; an experiment, used every day.</p>
     <div class="layers">
-      <div class="layer live shell"><div class="name">The shell<small>a web page · Vue, Svelte</small></div><p>Everything you see and press: tabs, the address field, menus, Settings. Pick one of five, or write your own.</p><span class="state">running in this tab</span></div>
-      <div class="layer live"><div class="name">The core<small>Go · WebAssembly here</small></div><p>Decides everything that isn't drawing: tabs, history, bookmarks, settings, passwords, updates.</p><span class="state">running in this tab</span></div>
+      <div class="layer live shell"><div class="name">The shell<small>a web page · Vue, Svelte</small></div><p>Everything you see and press: tabs, the address field, menus, Settings. Pick one of five, or write your own.</p><span class="state" data-live="running in this tab">runs in the live demo</span></div>
+      <div class="layer live"><div class="name">The core<small>Go · WebAssembly here</small></div><p>Decides everything that isn't drawing: tabs, history, bookmarks, settings, passwords, updates.</p><span class="state" data-live="running in this tab">runs in the live demo</span></div>
       <div class="layer stand"><div class="name">The renderer<small>Chromium · C++</small></div><p>Draws web pages. In the app it's Chromium's engine; here it's swapped for a stand-in, and the rest doesn't notice.</p><span class="state">a stand-in here</span></div>
     </div>
     <div class="downloads">
-      <a class="dl primary" data-os="mac" href="https://github.com/sudiptadeb/project-b/releases/latest/download/Project-B.dmg"><svg><use href="#i-apple"/></svg><span><b>Download for Mac</b><small>Apple silicon · DMG</small></span></a>
-      <a class="dl" data-os="android" href="https://github.com/sudiptadeb/project-b/releases/latest/download/Project-B.apk"><svg><use href="#i-android"/></svg><span><b>Download for Android</b><small>arm64 phones · APK</small></span></a>
+      <a class="dl primary" data-os="mac" href="https://github.com/sudiptadeb/project-b/releases/download/v0.3.8/Project-B-0.3.8.dmg"><svg><use href="#i-apple"/></svg><span><b>Download for Mac</b><small>Apple silicon · DMG</small></span></a>
+      <a class="dl" data-os="android" href="https://github.com/sudiptadeb/project-b/releases/download/v0.3.8/Project-B-0.3.8.apk"><svg><use href="#i-android"/></svg><span><b>Download for Android</b><small>arm64 phones · APK</small></span></a>
       <a class="dl" data-os="linux" href="#install"><svg><use href="#i-linux"/></svg><span><b>Install on Linux</b><small>arm64 preview · Flatpak</small></span></a>
     </div>
     <p class="version"><span class="chip mono">Stable 0.3.8</span><a href="https://github.com/sudiptadeb/project-b/releases">Dev builds and older releases</a></p>
@@ -237,16 +239,22 @@ h3.sub + .lead { margin-bottom: 16px; }
   <section id="proof" class="reveal">
     <div class="head">
       <span class="eyebrow">01 · The proof</span>
+      <div class="live-only" hidden>
       <h2>You're already using it.</h2>
       <p class="lead">The tabs, the address field and the menus around this text are Project B's shell, the same code as the app. Behind them the Go core is running in this tab, compiled to WebAssembly. Only the renderer is a stand-in: the parts are separate enough that swapping it out is all it took.</p>
       <p class="lead">What that means here: your own browser draws this demo, and as there's no renderer to fetch other sites, every tab shows this page. Nothing you type leaves the tab.</p>
+      </div>
+      <div class="alone-only">
+      <h2>See it running.</h2>
+      <p class="lead">The <a href="./">live demo</a> runs Project B's shell and its Go core in your browser, the core compiled to WebAssembly, with the renderer swapped for a stand-in. The rest doesn't notice.</p>
+      </div>
     </div>
-    <div class="try">
-      <div><b>Open a tab</b><span class="k-new"><kbd>Ctrl</kbd> <kbd>T</kbd></span>, or the + in the tab list.</div>
+    <div class="try live-only" hidden>
+      <div><b>Open a tab</b>The + in the tab list, or File, then New Tab.</div>
       <div><b>Change its shape</b>View, then Shell, in the menu bar.</div>
       <div><b>Look around</b>Settings, history, bookmarks: all real, all in this tab.</div>
     </div>
-    <p class="check">Check it: <code>core.wasm</code> in your browser's network panel. It's built from <a href="https://github.com/sudiptadeb/project-b/tree/main/core/cmd/webdemo">core/cmd/webdemo</a>.</p>
+    <p class="check live-only" hidden>Check it: <code>core.wasm</code> in your browser's network panel. It's built from <a href="https://github.com/sudiptadeb/project-b/tree/main/core/cmd/webdemo">core/cmd/webdemo</a>.</p>
   </section>
 
   <section id="shell" class="reveal">
@@ -305,7 +313,7 @@ h3.sub + .lead { margin-bottom: 16px; }
       <p class="lead">Every line is on <a href="https://github.com/sudiptadeb/project-b">GitHub</a> under the MIT licence, to read, change or build on. Installed copies keep themselves current.</p>
     </div>
     <div class="channels">
-      <div><b>Stable</b><p>Each release after its full tests. The app updates itself when one comes out.</p></div>
+      <div><b>Stable</b><p>Each release after its tests. The app updates itself when one comes out.</p></div>
       <div><b>Dev</b><p>Each change as it lands, before its full tests. Choose in Settings.</p></div>
     </div>
     <h3 class="sub" id="linux">On Linux</h3>
@@ -333,7 +341,7 @@ for (const a of document.querySelectorAll('a[href^="http"]')) { a.target = '_bla
 // The reader's platform: its download goes first and filled, and the keys it shows are its own.
 try {
   const ua = navigator.userAgent;
-  const os = /Android/.test(ua) ? 'android' : /Mac/.test(ua) ? 'mac' : /Linux/.test(ua) ? 'linux' : '';
+  const os = /Android/.test(ua) ? 'android' : /iPhone|iPad|iPod/.test(ua) ? '' : /Mac/.test(ua) ? 'mac' : /Linux/.test(ua) ? 'linux' : '';
   const mine = os && document.querySelector('.dl[data-os="' + os + '"]');
   // One button for the reader's own platform, the others a quiet line under it.
   const all = [...document.querySelectorAll('.dl')];
@@ -353,7 +361,6 @@ try {
   all.forEach((a) => a.classList.toggle('primary', a === first));
   first.parentNode.prepend(first);
   first.parentNode.append(alts);
-  if (os === 'mac') document.querySelector('.k-new').innerHTML = '<kbd>⌘</kbd> <kbd>T</kbd>';
   if (os === 'android') document.querySelector('.try').hidden = true;
 } catch (e) {}
 
@@ -426,8 +433,12 @@ if (window.top === window && new URLSearchParams(location.search).has('nocore'))
 // The demo's side, as dev's mock page speaks it (core/cmd/dev/mock_page.html): this page is
 // one slot of its window, ?slot=<n>, and hears its slot's state, the tab and its address.
 (() => {
-  // Opened on its own, with no demo around it, the page is just the page.
+  // Opened on its own, with no demo around it, the page is just the page, and says only
+  // what is true there; inside the demo it says what is running around it.
   if (window.top === window) return;
+  document.querySelectorAll('.live-only').forEach((el) => { el.hidden = false; });
+  document.querySelectorAll('.alone-only').forEach((el) => { el.hidden = true; });
+  document.querySelectorAll('.state[data-live]').forEach((el) => { el.textContent = el.dataset.live; });
   const q = new URLSearchParams(location.search);
   const win = q.get('window') || '1';
   const slot = Number(q.get('slot') || 0);

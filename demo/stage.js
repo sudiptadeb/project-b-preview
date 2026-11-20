@@ -58,12 +58,15 @@ function handOver() {
   touring = false;
   pointer.style.opacity = 0;
   logEl.classList.remove('touring');
+  lines.scrollTop = lines.scrollHeight;
 }
 addEventListener('pointerdown', (e) => { if (e.isTrusted) handOver(); }, true);
 addEventListener('keydown', (e) => { if (e.isTrusted) handOver(); }, true);
 
 // What the OS page says (os.js).
 addEventListener('message', (e) => {
+  // Only the OS page in this page speaks here, not a window that opened or framed us.
+  if (e.source !== osFrame.contentWindow) return;
   const m = e.data;
   if (!m || !m.pbOS) return;
   if (m.pbOS === 'log') log(m.who, m.text);
@@ -145,6 +148,8 @@ async function tour() {
     choice.click();
     // Out of the way, so the new shell is seen whole.
     pointer.style.transform = `translate(${innerWidth * 0.55}px, ${innerHeight * 0.6}px)`;
+    // After the menu's own line, which comes from the OS page.
+    await wait(50);
     log('core', `same tabs and history; the shell is now ${shell}`);
     await wait(TOUR_STEP_MS);
   }
@@ -153,6 +158,8 @@ async function tour() {
     logEl.classList.add('ping');
   }
   logEl.classList.remove('touring');
+  // Every line shows again: keep the newest in view.
+  lines.scrollTop = lines.scrollHeight;
   handOver();
 }
 
@@ -280,7 +287,10 @@ fsShow();
   if (reduced || phone) {
     // A phone opens the app by itself, as no tour does it there.
     if (phone && !reduced) await wait(600);
+    // No tour opens it here, so the log says the system did.
+    osFrame.contentWindow.pbActor = 'system';
     osDoc().getElementById('app-icon').click();
+    osFrame.contentWindow.pbActor = undefined;
     return;
   }
   if (!touring) return;

@@ -33,8 +33,9 @@
   };
 
   // by is who did what an event says: the visitor, or the page around showing the way
-  // (the web demo's tour), whose clicks are the page's own.
-  const by = (e) => (e && !e.isTrusted ? 'tour' : 'you');
+  // (the web demo's tour), whose clicks are the page's own; the page names another actor,
+  // such as "system" for opening the app by itself, in window.pbActor while it acts.
+  const by = (e) => (e && !e.isTrusted ? window.pbActor || 'tour' : 'you');
 
   // ---- Windows: a frame for each window the core has open ------------------------------
 
@@ -345,10 +346,11 @@
           b.append(c);
         }
         if (it.items || it.role) {
-          // A submenu, opened by resting on it; the OS's own (Services) has nothing here.
+          // A submenu, opened by resting on it or by a click or tap on it, which keeps the
+          // menu open; the OS's own (Services) has nothing here.
           b.classList.add('sub');
           b.disabled = !it.items;
-          b.addEventListener('pointerenter', () => {
+          const openSub = () => {
             closeSubs(menu, b);
             if (b.classList.contains('open')) return;
             b.classList.add('open');
@@ -356,6 +358,13 @@
             sub.className = 'menu submenu';
             fill(sub, it.items, [...path, it.title]);
             b.append(sub);
+          };
+          b.addEventListener('pointerenter', openSub);
+          b.addEventListener('click', (e) => {
+            // A choice in the submenu, which sits inside this item, acts on its own.
+            if (b.querySelector(':scope > .submenu')?.contains(e.target)) return;
+            e.stopPropagation();
+            openSub();
           });
         } else {
           b.disabled = !it.enabled;

@@ -22,7 +22,9 @@
   // Mac, Linux's on any other.
   (() => {
     const ua = navigator.userAgent;
-    globalThis.pbcoreOS = /Android/.test(ua) ? 'android' : /Macintosh|Mac OS X/.test(ua) ? 'mac' : 'linux';
+    // A phone, iPhones too (whose user agent also says Mac OS X), or any narrow screen, gets
+    // the phone's app, as stage.js gives it the phone's stage.
+    globalThis.pbcoreOS = /Android|iPhone|iPod/.test(ua) || innerWidth < 640 ? 'android' : /Macintosh|Mac OS X/.test(ua) ? 'mac' : 'linux';
     const t0 = performance.now();
     globalThis.pbcoreStarted = new Promise((ready, failed) => {
       globalThis.pbcoreReady = () => {
@@ -32,7 +34,7 @@
       const go = new Go();
       // The core's size as built (build.sh writes it in), and how much of it has come, for
       // the intro to say while it waits.
-      globalThis.pbcoreTotal = Number('32598219') || 0;
+      globalThis.pbcoreTotal = Number('32589792') || 0;
       globalThis.pbcoreBytes = 0;
       fetch('core.wasm', { credentials: 'same-origin' })
         .then((res) => {
@@ -65,8 +67,8 @@
     <button id="fullscreen" hidden title="Fill the screen with the demo"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg>Best in full screen</button>
     <button id="download-button" aria-haspopup="true" aria-expanded="false">Download</button>
     <div id="download-menu" class="menu" hidden>
-      <a href="https://github.com/sudiptadeb/project-b/releases/latest/download/Project-B.dmg">Mac<small>Apple silicon · DMG</small></a>
-      <a href="https://github.com/sudiptadeb/project-b/releases/latest/download/Project-B.apk">Android<small>arm64 phones · APK</small></a>
+      <a href="https://github.com/sudiptadeb/project-b/releases/download/v0.3.8/Project-B-0.3.8.dmg">Mac<small>Apple silicon · DMG</small></a>
+      <a href="https://github.com/sudiptadeb/project-b/releases/download/v0.3.8/Project-B-0.3.8.apk">Android<small>arm64 phones · APK</small></a>
       <a href="https://projectb.debkosh.com/project-b.flatpakref">Linux<small>arm64 preview · Flatpak</small></a>
       <hr>
       <a href="https://github.com/sudiptadeb/project-b">Source on GitHub<small>MIT licence</small></a>
