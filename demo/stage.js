@@ -22,11 +22,6 @@ const osFrame = $('os');
 const pointer = $('pointer');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const phone = globalThis.pbcoreOS === 'android' || innerWidth < 640;
-const store = {
-  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
-  set(k, v) { try { localStorage.setItem(k, v); } catch { /* the page works without it */ } },
-};
-const seen = store.get('pb-seen');
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 if (phone) document.documentElement.classList.add('phone');
 
@@ -55,8 +50,10 @@ $('log-toggle').addEventListener('click', () => {
 // ---- The tour: the pointer, until the visitor takes over -------------------------------
 
 let touring = !reduced && !phone;
+// While the intro plays, a press or key only ends the intro; the tour still follows.
+let introPlaying = false;
 function handOver() {
-  if (!touring) return;
+  if (!touring || introPlaying) return;
   touring = false;
   pointer.style.opacity = 0;
 }
@@ -69,7 +66,6 @@ addEventListener('message', (e) => {
   if (!m || !m.pbOS) return;
   if (m.pbOS === 'log') log(m.who, m.text);
   if (m.pbOS === 'visitor') handOver();
-  if (m.pbOS === 'launched') store.set('pb-seen', '1');
   if (m.pbOS === 'restart') {
     log('you', 'opened Project B again: it starts afresh');
     setTimeout(() => location.reload(), 400);
@@ -152,29 +148,39 @@ async function tour() {
 
 // ---- The intro ------------------------------------------------------------------------
 
+// Each line is fully in view for LINE_MS before the next comes, and the last holds for
+// LAST_MS. Any key or press ends it at once, with a short fade.
+const LINE_MS = 1800;
+const LAST_MS = 1500;
 async function intro() {
   const el = $('intro');
+  introPlaying = true;
   let skipped = false;
-  const skip = () => { skipped = true; };
-  addEventListener('pointerdown', skip, { once: true });
-  addEventListener('keydown', skip, { once: true });
+  let wake = () => {};
+  const skip = () => { skipped = true; wake(); };
+  addEventListener('pointerdown', skip, true);
+  addEventListener('keydown', skip, true);
+  // pause waits ms, or less once skipped.
+  const pause = (ms) => new Promise((r) => { const t = setTimeout(r, ms); wake = () => { clearTimeout(t); r(); }; });
   const ps = OPENING.map((t) => {
     const p = document.createElement('p');
     p.textContent = t;
     el.append(p);
     return p;
   });
-  await wait(150);
-  for (const p of ps) {
+  await pause(150);
+  for (const [i, p] of ps.entries()) {
     if (skipped) break;
     p.classList.add('shown');
-    for (let t = 0; t < 8 && !skipped; t++) await wait(100);
+    // The line's own fade-in, then its time to be read.
+    await pause(700 + (i === ps.length - 1 ? LAST_MS : LINE_MS));
   }
-  for (let t = 0; t < 7 && !skipped; t++) await wait(100);
-  removeEventListener('pointerdown', skip);
-  removeEventListener('keydown', skip);
-  el.classList.add('leaving');
-  setTimeout(() => el.remove(), 650);
+  removeEventListener('pointerdown', skip, true);
+  removeEventListener('keydown', skip, true);
+  el.classList.add(skipped ? 'leaving-fast' : 'leaving');
+  await wait(skipped ? 250 : 600);
+  introPlaying = false;
+  el.remove();
 }
 
 // ---- Download -------------------------------------------------------------------------
@@ -191,13 +197,27 @@ dlButton.addEventListener('click', (e) => {
 const closeDownload = () => { dlMenu.hidden = true; dlButton.setAttribute('aria-expanded', 'false'); };
 document.addEventListener('click', closeDownload);
 
+// ---- Full screen ----------------------------------------------------------------------
+
+// The demo is best with the whole screen: a quiet button offers it where the browser can,
+// and hides while the page is in full screen or on a phone.
+const fsButton = $('fullscreen');
+const fsShow = () => {
+  fsButton.hidden = phone || !document.fullscreenEnabled || !!document.fullscreenElement;
+};
+fsButton.addEventListener('click', (e) => {
+  e.stopPropagation();
+  document.documentElement.requestFullscreen?.().catch(() => {});
+});
+document.addEventListener('fullscreenchange', fsShow);
+fsShow();
+
 // ---- Start ----------------------------------------------------------------------------
 
 (async () => {
-  // The intro plays while the core starts; a returning visitor, or one who asked for
-  // less motion, goes straight to the desktop and skips the tour.
-  if (seen) touring = false;
-  const introDone = !reduced && !seen ? intro() : ($('intro').remove(), Promise.resolve());
+  // The intro plays on every load while the core starts; one who asked for less motion
+  // goes straight to the desktop and skips the tour.
+  const introDone = !reduced ? intro() : ($('intro').remove(), Promise.resolve());
   let started = true;
   try {
     await globalThis.pbcoreStarted;
@@ -212,7 +232,7 @@ document.addEventListener('click', closeDownload);
   osFrame.src = 'os.html' + (phone ? '?phone' : '');
   await new Promise((r) => osFrame.addEventListener('load', r, { once: true }));
   osDoc().addEventListener('click', closeDownload);
-  if (reduced || seen) {
+  if (reduced) {
     osDoc().getElementById('app-icon').click();
     return;
   }

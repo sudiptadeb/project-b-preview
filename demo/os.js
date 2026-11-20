@@ -62,6 +62,7 @@
       const r = rectOf(id, w);
       Object.assign(w.el.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
       w.el.classList.toggle('zoomed', !!(w.core && w.core.zoomed));
+      if (!phone && w.radius !== undefined) w.el.style.borderRadius = w.core && w.core.zoomed ? '0' : w.radius + 'px';
     }
     // toIcon is the transform that puts a window over the icon's picture.
     function toIcon(el) {
@@ -101,18 +102,35 @@
       const w = { el, frame, buttons, shown: false, minimised: false, core: null };
       wins.set(id, w);
       place(id);
-      // On a phone the window has no frame: the page draws none.
+      // On a phone the window has no frame: the page draws none. Elsewhere this page is the
+      // window's edge, its corners the window's own, so the window page's band, a second
+      // edge inside it, is not drawn; behind the shell the window takes its dark colour
+      // while the system is dark, as the real window paints FrameDark by its appearance.
+      let band = null;
       frame.addEventListener('load', () => {
-        if (!phone) return;
         const s = frame.contentDocument.createElement('style');
-        s.textContent = '.band, .controls { display: none !important; } #window { border-radius: 0 !important; }';
+        if (phone) s.textContent = '.band, .controls { display: none !important; } #window { border-radius: 0 !important; }';
         frame.contentDocument.head.append(s);
+        band = s;
+        paintBand();
       });
+      const dark = matchMedia('(prefers-color-scheme: dark)');
+      const paintBand = () => {
+        if (!band || phone || !w.colors) return;
+        const c = dark.matches ? w.colors.dark : w.colors.light;
+        band.textContent = `.band { display: none !important; } #window { background: ${c} !important; }`;
+      };
+      dark.addEventListener('change', paintBand);
       // Where the engine puts the window's buttons, as the window page reads it.
       const feed = new EventSource(`/mock/window/events?window=${id}`);
       feed.onmessage = (e) => {
         const m = JSON.parse(e.data);
         if (m.t !== 'window') return;
+        // The frame is the shape the engine gives the window: its corners are the window's.
+        w.radius = m.cornerRadius || 0;
+        if (!phone) el.style.borderRadius = w.core && w.core.zoomed ? '0' : w.radius + 'px';
+        w.colors = { light: m.frameColor, dark: m.frameDark || m.frameColor };
+        paintBand();
         const c = m.controls;
         buttons.hidden = phone || !c;
         if (c) Object.assign(buttons.style, { left: c.x + 'px', top: c.y + 'px', width: c.w + 'px', height: c.h + 'px' });

@@ -27,7 +27,7 @@ button { font: inherit; color: inherit; }
   padding: 0 24px; text-align: center; background: var(--page); cursor: default;
 }
 #intro p {
-  margin: 0; font-weight: 650; letter-spacing: -0.02em; font-size: clamp(28px, 4.6vw, 56px); line-height: 1.12;
+  margin: 0; font-weight: 650; letter-spacing: -0.02em; font-size: clamp(22px, 3.2vw, 38px); line-height: 1.18;
   opacity: 0; transform: translateY(10px); filter: blur(8px);
   transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.9s ease;
 }
@@ -35,6 +35,7 @@ button { font: inherit; color: inherit; }
 #intro p + p { color: var(--brand-a); }
 @media (prefers-color-scheme: dark) { #intro p + p { color: var(--mint); } }
 #intro.leaving { opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
+#intro.leaving-fast { opacity: 0; transition: opacity 0.25s ease; pointer-events: none; }
 
 #desktop { position: fixed; inset: 0; }
 #desktop.arriving { animation: arrive 0.7s ease both; }
@@ -93,3 +94,12 @@ button { font: inherit; color: inherit; }
 .phone #log { top: 3px; bottom: auto; left: 50%; transform: translateX(-50%); max-height: 50vh; box-shadow: 0 0 0 0.5px var(--log-line); }
 .phone #log-toggle { padding: 3px 10px; font-size: 12px; }
 .phone #log:not(.collapsed) { width: calc(100vw - 24px); }
+
+/* The full-screen hint, beside Download: quiet, and gone on phones and in full screen. */
+#fullscreen {
+  height: 22px; margin-right: 6px; padding: 0 9px; border: 0; border-radius: 5px; background: none; cursor: default;
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted);
+}
+#fullscreen svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+#fullscreen:hover { background: rgba(127, 127, 127, 0.18); color: var(--text); }
+.phone #fullscreen { display: none; }

@@ -34,7 +34,7 @@
 html { scroll-behavior: smooth; }
 body {
   margin: 0; background: var(--bg); color: var(--text);
-  font: 16px/1.6 -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif;
+  font: 15px/1.6 -apple-system, "system-ui", "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 24px 24px;
@@ -53,15 +53,15 @@ nav a:hover { color: var(--text); }
 
 /* Hero */
 .hero { position: relative; padding: clamp(40px, 9vw, 96px) 0 clamp(32px, 6vw, 64px); text-align: center; }
-.hero .icon { width: clamp(84px, 12vw, 112px); height: auto; display: block; margin: 0 auto 28px; border-radius: 24%; box-shadow: var(--shadow-big); }
+.hero .icon { width: clamp(68px, 8vw, 88px); height: auto; display: block; margin: 0 auto 22px; border-radius: 24%; box-shadow: var(--shadow-big); }
 .hero .icon .guide { stroke-dasharray: 200; stroke-dashoffset: 200; animation: draw 1.4s 0.2s ease-out forwards; }
 .hero .icon .pt { transform-box: fill-box; transform-origin: center; transform: scale(0); animation: pop 0.35s ease-out forwards; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes pop { to { transform: scale(1); } }
 .eyebrow { display: inline-flex; align-items: center; gap: 8px; font: 12px/1 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); }
 .eyebrow::before { content: ""; width: 18px; height: 1px; background: currentColor; }
-h1 { font-size: clamp(38px, 7.2vw, 76px); line-height: 1.02; margin: 14px auto 18px; letter-spacing: -0.035em; font-weight: 750; max-width: 14ch; }
-.hero .tag { font-size: clamp(17px, 2.2vw, 20px); color: var(--muted); margin: 0 auto; max-width: 46ch; }
+h1 { font-size: clamp(26px, 3.4vw, 40px); line-height: 1.08; margin: 14px auto 18px; letter-spacing: -0.035em; font-weight: 750; max-width: 14ch; }
+.hero .tag { font-size: clamp(15px, 1.7vw, 17px); color: var(--muted); margin: 0 auto; max-width: 46ch; }
 .downloads { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 34px 0 18px; }
 .dl { display: flex; align-items: center; gap: 12px; padding: 13px 20px 13px 16px; border-radius: 14px; text-decoration: none; text-align: left; background: var(--surface); border: 1px solid var(--line-strong); transition: transform 0.15s, box-shadow 0.15s; }
 .dl:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
@@ -77,16 +77,16 @@ h1 { font-size: clamp(38px, 7.2vw, 76px); line-height: 1.02; margin: 14px auto 1
 /* Sections */
 section { padding: clamp(64px, 10vw, 120px) 0 0; }
 .head { max-width: 680px; margin-bottom: clamp(28px, 4vw, 44px); }
-h2 { font-size: clamp(28px, 4.4vw, 44px); line-height: 1.08; margin: 12px 0 14px; letter-spacing: -0.025em; font-weight: 720; }
-.lead { color: var(--muted); margin: 0; font-size: clamp(16px, 1.9vw, 18px); }
+h2 { font-size: clamp(22px, 2.5vw, 28px); line-height: 1.15; margin: 12px 0 14px; letter-spacing: -0.025em; font-weight: 720; }
+.lead { color: var(--muted); margin: 0; font-size: clamp(15px, 1.5vw, 16px); }
 .lead + .lead { margin-top: 12px; }
 
 /* What you're looking at: the layers */
 .layers { display: grid; gap: 10px; position: relative; }
 .layer { display: grid; grid-template-columns: 148px 1fr auto; gap: 18px; align-items: center; padding: 20px 22px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); position: relative; }
-.layer .name { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+.layer .name { font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
 .layer .name small { display: block; font: 12px ui-monospace, "SF Mono", Menlo, monospace; color: var(--faint); font-weight: 400; margin-top: 2px; letter-spacing: 0; }
-.layer p { margin: 0; color: var(--muted); font-size: 15px; }
+.layer p { margin: 0; color: var(--muted); font-size: 14px; }
 .layer .state { font: 12px/1 ui-monospace, "SF Mono", Menlo, monospace; padding: 7px 10px; border-radius: 99px; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; }
 .layer .state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 .layer.live .state { background: var(--chip); color: var(--ink); }
@@ -97,7 +97,7 @@ h2 { font-size: clamp(28px, 4.4vw, 44px); line-height: 1.08; margin: 12px 0 14px
 .layer.shell::after { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 3px; background: var(--mint); }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(95, 245, 207, 0.6); } 70% { box-shadow: 0 0 0 7px rgba(95, 245, 207, 0); } 100% { box-shadow: 0 0 0 0 rgba(95, 245, 207, 0); } }
 .try { margin-top: 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.try div { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); font-size: 14.5px; color: var(--muted); background: color-mix(in srgb, var(--surface) 60%, transparent); }
+.try div { padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); font-size: 13.5px; color: var(--muted); background: color-mix(in srgb, var(--surface) 60%, transparent); }
 .try b { color: var(--text); font-weight: 600; display: block; margin-bottom: 2px; }
 kbd { font: 12.5px ui-monospace, "SF Mono", Menlo, monospace; padding: 1px 6px; border-radius: 5px; border: 1px solid var(--line-strong); border-bottom-width: 2px; background: var(--surface); color: var(--text); }
 
@@ -112,15 +112,15 @@ kbd { font: 12.5px ui-monospace, "SF Mono", Menlo, monospace; padding: 1px 6px; 
 .stage picture.on { opacity: 1; }
 .stage img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
 .caption { display: flex; gap: 14px; align-items: baseline; padding: 16px 20px 18px; border-top: 1px solid var(--line); min-height: 64px; }
-.caption b { font-size: 16px; white-space: nowrap; }
-.caption span { color: var(--muted); font-size: 15px; }
+.caption b { font-size: 15px; white-space: nowrap; }
+.caption span { color: var(--muted); font-size: 14px; }
 .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
 .cards.two { grid-template-columns: repeat(2, 1fr); }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; }
 .card .ic { width: 38px; height: 38px; border-radius: 10px; background: var(--chip); color: var(--ink); display: grid; place-items: center; margin-bottom: 14px; }
 .card .ic svg { width: 21px; height: 21px; }
-.card h3 { margin: 0 0 6px; font-size: 17px; letter-spacing: -0.01em; }
-.card p { margin: 0; color: var(--muted); font-size: 15px; }
+.card h3 { margin: 0 0 6px; font-size: 15.5px; letter-spacing: -0.01em; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
 .card img { display: block; width: 100%; margin-top: 16px; border-radius: 10px; border: 1px solid var(--line); }
 .card.quiet { background: transparent; box-shadow: none; }
 pre { margin: 14px 0 0; padding: 12px 14px; border-radius: 10px; background: var(--code); border: 1px solid var(--line); font: 12.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace; color: var(--muted); overflow-x: auto; }
@@ -131,12 +131,12 @@ pre .k { color: var(--ink); }
 .built > div { padding: 22px 22px 0 0; }
 .built > div + div { padding-left: 22px; border-left: 1px solid var(--line); }
 .built .n { font: 12px ui-monospace, "SF Mono", Menlo, monospace; color: var(--ink); }
-.built b { display: block; font-size: 17px; margin: 6px 0 6px; letter-spacing: -0.01em; }
-.built p { margin: 0; color: var(--muted); font-size: 15px; }
+.built b { display: block; font-size: 15.5px; margin: 6px 0 6px; letter-spacing: -0.01em; }
+.built p { margin: 0; color: var(--muted); font-size: 14px; }
 .channels { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 10px; }
 .channels div { flex: 1 1 260px; padding: 16px 18px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); }
-.channels b { font-size: 15px; }
-.channels p { margin: 4px 0 0; color: var(--muted); font-size: 14.5px; }
+.channels b { font-size: 14.5px; }
+.channels p { margin: 4px 0 0; color: var(--muted); font-size: 13.5px; }
 
 /* Linux */
 .linux { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 8px 26px; box-shadow: var(--shadow); }
