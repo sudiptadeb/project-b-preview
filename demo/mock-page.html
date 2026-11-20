@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="shim.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mock page</title>
+<style>
+  :root { color-scheme: light dark; font: 14px system-ui, sans-serif; }
+  body { margin: 0; padding: 16px; background: Canvas; color: CanvasText; }
+  #state { font-weight: 600; }
+  #tab { opacity: .7; margin-bottom: 4px; min-height: 1.4em; }
+  #url { opacity: .7; margin-bottom: 16px; overflow-wrap: anywhere; min-height: 1.4em; }
+  form { display: flex; gap: 8px; margin-bottom: 8px; max-width: 520px; }
+  input { flex: 1; min-width: 0; padding: 6px 8px; font: inherit; }
+  button { padding: 6px 12px; font: inherit; min-width: 96px; }
+</style>
+</head>
+<body>
+  <div id="state">Empty</div>
+  <div id="tab"></div>
+  <div id="url"></div>
+  <form data-kind="navigate"><input value="https://example.com/next"><button>Navigate</button></form>
+  <form data-kind="title"><input value="A new title"><button>Title</button></form>
+  <form data-kind="fail"><input value="refused ERR_CONNECTION_REFUSED"><button>Fail</button></form>
+  <form data-kind="crash"><button>Crash</button></form>
+  <form data-kind="favicon"><input value="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%230faaaa'/%3E%3C/svg%3E" aria-label="Favicon data URL"><button>Favicon</button></form>
+  <form data-kind="open"><input value="https://opened.test/"><button>Open in new tab</button></form>
+  <form data-kind="key"><input value="focusAddressBar" aria-label="Key name"><button>Key</button></form>
+  <form data-kind="fullscreen"><button>Full screen</button></form>
+<script>
+  // The window this page is in, and its slot there, as its address names them. The tab it
+  // shows comes with its state; each button acts on that tab.
+  const q = new URLSearchParams(location.search);
+  const win = q.get('window') || '1';
+  const slot = Number(q.get('slot') || 0);
+  let tab = 0;
+  // Each in turn, so the press that gives the tab the keyboard arrives before what it did.
+  let sending = Promise.resolve();
+  const fire = (kind, value) => {
+    const body = new URLSearchParams({kind, value, tab});
+    sending = sending.then(() => fetch(`/mock/fire?window=${win}`, {method: 'POST', body}));
+  };
+  // A press in the page gives its tab the keyboard, as a click in a real page does.
+  addEventListener('pointerdown', () => tab && fire('focusTab', ''), true);
+  const label = {empty: 'Empty', loading: 'Loading', loaded: 'Loaded', blocked: 'Blocked', crashed: 'Crashed', none: 'No tab', closed: 'Window closed'};
+  for (const form of document.querySelectorAll('form')) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = form.querySelector('input');
+      fire(form.dataset.kind, input ? input.value : '');
+    });
+  }
+  new EventSource(`/mock/events?window=${win}&slot=${slot}`).onmessage = (e) => {
+    const m = JSON.parse(e.data);
+    if (m.slot !== slot) return;
+    tab = m.tab;
+    document.getElementById('state').textContent = label[m.state] || m.state;
+    document.getElementById('tab').textContent = m.tab ? 'tab ' + m.tab : '';
+    document.getElementById('url').textContent = m.url;
+  };
+</script>
+</body>
+</html>

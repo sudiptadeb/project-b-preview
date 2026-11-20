@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<script src="shim.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project B</title>
+<!--
+  The mock's OS window. On the mock engine the browser tab is the window, and this page
+  holds what the real window holds in native views, bottom to top. It is one of Go's
+  windows, by the id in its address, /?window=<id>, window 1 at plain /, and it passes
+  that id on to every page it holds and every feed it reads:
+
+    pages     a mock page for each tab the layout shows, where the layout puts it, in its
+              order, each kept by its place in the list, its slot, and marked with its
+              tab, data-tab. The first is always there, hidden while the layout shows
+              no tab. As the real window holds its pages until its shell has drawn the
+              layout that places them, they are transparent until the shell's frame
+              after the first such layout has drawn. A tab of ours shows its page
+              instead, our real one, such as /settings/?tab=<id>, in a frame of its own
+              marked data-tab and data-page, which the window keeps while it holds the
+              tab, as the real window keeps its view, hidden while the layout doesn't
+              show it.
+    shell     the shell the window loads, /shell/<id>/, over the whole window and
+              transparent, so the page shows through its unpainted hole.
+    band      the frame band around the window's edge, and the window controls where the
+              engine reports them (none in full screen), over both.
+    popup     an extension's popup under its button. The mock runs no extension pages, so
+              it is a card that names the page; a click outside it closes it.
+    outlines  with the Show window regions flag on, a 1px border around every rectangle
+              the window manager tracks, over everything and taking no presses, as the
+              real window's PBRegionOutlineView draws them (docs/windows.md).
+
+  Go's mock engine says what to draw on /mock/window/events: the state on connecting,
+  then each change, as WindowState in core/mockengine has it. This page tells Go its size
+  on /mock/window/size, as the real window reports its own.
+
+  Each press goes where the real window sends it: the layout's regions decide in their
+  order, the first that holds it, otherwise the page. The pointer is watched in this document and in every
+  frame's, and the shell lets the pointer through to the pages while it is over a page's
+  part. The shell never knows it runs here.
+-->
+<style>
+  html, body { height: 100%; margin: 0; overflow: hidden; background: #6b6b6b; }
+  /* Playwright checks a click's target before it moves the mouse, by hit-testing this
+     document; here what is hit depends on where the pointer last was. A transform on
+     the window makes it check the presses that land in the frame instead. */
+  #window { position: fixed; inset: 0; overflow: hidden; transform: translate(0); }
+  iframe { position: absolute; border: 0; }
+  .mock-page { display: none; }
+  #window:not(.pages-shown) .mock-page { opacity: 0; }
+  .shell { inset: 0; width: 100%; height: 100%; background: transparent; }
+  .band { position: absolute; inset: 0; box-sizing: border-box; border-style: solid; pointer-events: none; }
+  .controls { position: absolute; display: none; justify-content: space-between; align-items: center; pointer-events: none; }
+  .controls i { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 20%); }
+  .controls i:nth-child(1) { background: #ff5f57; }
+  .controls i:nth-child(2) { background: #febc2e; }
+  .controls i:nth-child(3) { background: #28c840; }
+  .our-page { display: none; }
+  .mock-popup-backdrop { position: absolute; inset: 0; }
+  .mock-popup {
+    position: absolute; width: 320px; padding: 12px 14px; border-radius: 12px; box-sizing: border-box;
+    background: Canvas; color: CanvasText; font: 13px system-ui;
+    box-shadow: 0 0 0 0.5px rgb(0 0 0 / 25%), 0 8px 24px rgb(0 0 0 / 20%);
+  }
+  .mock-popup .url { margin-top: 6px; opacity: 0.7; word-break: break-all; }
+  .outlines { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+  .outlines svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .outlines rect { fill: none; stroke-width: 1; }
+  .outlines .label { position: absolute; padding: 0 1px; background: rgb(255 255 255 / 85%); color: #16a34a; font: 10px system-ui; line-height: 12px; }
+</style>
+</head>
+<body>
+<div id="window">
+  <iframe class="mock-page" title="Mock page"></iframe>
+  <iframe class="shell" title="Shell"></iframe>
+  <div class="band"></div>
+  <div class="controls"><i></i><i></i><i></i></div>
+  <div class="outlines" hidden><svg></svg></div>
+</div>
+<script>
+  // Which of Go's windows this is.
+  const id = new URLSearchParams(location.search).get('window') || '1';
+  const win = document.getElementById('window');
+  const shell = win.querySelector('.shell');
+  // The mock pages, by slot.
+  const pages = [win.querySelector('.mock-page')];
+  const band = win.querySelector('.band');
+  const controls = win.querySelector('.controls');
+  const outlines = win.querySelector('.outlines');
+  let state = { pages: [], regions: [] };
+  let pointer = null;
+  let popup = null;
+  // The frames of our pages, by tab: each tab of ours whose page the window holds.
+  const ours = new Map();
+  pages[0].src = `mock-page.html?window=${id}&slot=0`;
+
+  // What a press at x, y does, as engine.WindowLayout.At decides it: the first region
+  // that holds the point, in the order Go's window manager gave them.
+  function areaAt(x, y) {
+    const r = state.regions.find((r) => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h);
+    return r ? r.area : 'page';
+  }
+
+  function route() {
+    if (pointer) shell.style.pointerEvents = areaAt(pointer.x, pointer.y) === 'page' ? 'none' : 'auto';
+  }
+
+  // watch follows the pointer in one document, whose point is offset from the window's.
+  // A press holds whatever it began on, so a move with a button down changes nothing.
+  function watch(target, offset) {
+    for (const type of ['pointermove', 'pointerdown', 'wheel']) {
+      target.addEventListener(type, (e) => {
+        if (e.type === 'pointermove' && e.buttons) return;
+        const o = offset();
+        pointer = { x: e.clientX + o.x, y: e.clientY + o.y };
+        route();
+      }, { capture: true, passive: true });
+    }
+  }
+  const origin = () => ({ x: 0, y: 0 });
+  watch(window, origin);
+  const follow = (frame) => frame.addEventListener('load', () => watch(frame.contentWindow, () => ({ x: frame.offsetLeft, y: frame.offsetTop })));
+  follow(pages[0]);
+  // What a page or the user does to a tab, as a mock page fires it.
+  const fire = (kind, value, tab) => fetch(`/mock/fire?window=${id}`, { method: 'POST', body: new URLSearchParams({ kind, value, tab }) });
+  shell.addEventListener('load', () => {
+    watch(shell.contentWindow, origin);
+    // Chrome paints a frame opaque when its document's colour scheme differs from the
+    // frame element's, so the element follows the scheme the shell's theme sets.
+    const root = shell.contentDocument.documentElement;
+    const mirror = () => { shell.style.colorScheme = getComputedStyle(root).colorScheme; };
+    new MutationObserver(mirror).observe(root, { attributes: true, attributeFilter: ['style', 'class'] });
+    mirror();
+    // The real window gives the shell the keyboard first.
+    shell.contentWindow.focus();
+  });
+
+  // The window's page is the shell its state names; another one loads in its place.
+  function loadShell(name) {
+    const src = `shell/${name}/?window=${id}`;
+    if (shell.getAttribute('src') !== src) shell.src = src;
+  }
+
+  // Whether the pages wait for the shell's frame after the first layout that places one.
+  let held = true;
+
+  // placePages puts a mock page where the layout puts each tab, a new one under the shell
+  // for a slot that had none, and takes away the slots it no longer has, but the first.
+  function placePages(shown) {
+    if (held && shown.length) {
+      held = false;
+      requestAnimationFrame(() => {
+        const drawn = new MessageChannel();
+        drawn.port1.onmessage = () => win.classList.add('pages-shown');
+        drawn.port2.postMessage(0);
+      });
+    }
+    while (pages.length < shown.length) {
+      const frame = document.createElement('iframe');
+      frame.className = 'mock-page';
+      frame.title = 'Mock page';
+      frame.src = `mock-page.html?window=${id}&slot=${pages.length}`;
+      follow(frame);
+      shell.before(frame);
+      pages.push(frame);
+    }
+    while (pages.length > Math.max(1, shown.length)) pages.pop().remove();
+    pages.forEach((frame, slot) => {
+      const p = shown[slot];
+      frame.style.display = p && !p.page ? 'block' : 'none';
+      frame.dataset.tab = p && !p.page ? p.tab : '';
+      if (p) place(frame, p.rect);
+    });
+  }
+
+  // dataURL is an image as a data: URL, as the engine hands Go a page's icon.
+  const dataURL = (u) => fetch(u).then((r) => r.blob()).then((b) => new Promise((done) => {
+    const reader = new FileReader();
+    reader.onload = () => done(reader.result);
+    reader.readAsDataURL(b);
+  }));
+
+  function place(frame, r) {
+    Object.assign(frame.style, { left: `${r.x}px`, top: `${r.y}px`, width: `${r.w}px`, height: `${r.h}px` });
+  }
+
+  // placeOurs keeps a frame of our page for each tab of ours the window holds, made the
+  // first time, and shows those the layout shows where it puts them. Its page's title and
+  // icon are the tab's, each time they change, and a press in it gives the tab the
+  // keyboard, as the real engine tells Go of a page's.
+  function placeOurs(held, shown) {
+    for (const [tab, frame] of ours) {
+      if (!held.some((o) => o.tab === tab)) {
+        frame.remove();
+        ours.delete(tab);
+      }
+    }
+    for (const o of held) {
+      if (ours.has(o.tab)) continue;
+      const frame = document.createElement('iframe');
+      frame.className = 'our-page';
+      frame.title = o.page;
+      frame.dataset.tab = o.tab;
+      frame.dataset.page = o.page;
+      frame.src = `${o.page}/?tab=${o.tab}`;
+      follow(frame);
+      frame.addEventListener('load', () => {
+        const doc = frame.contentDocument;
+        const said = {};
+        const tell = async () => {
+          if (doc.title !== said.title) fire('title', (said.title = doc.title), o.tab);
+          const icon = doc.querySelector('link[rel~=icon]')?.href || '';
+          if (icon !== said.icon) {
+            said.icon = icon;
+            fire('favicon', icon && (await dataURL(icon)), o.tab);
+          }
+        };
+        new MutationObserver(tell).observe(doc.head, { subtree: true, childList: true, characterData: true, attributes: true });
+        tell();
+        frame.contentWindow.addEventListener('pointerdown', () => fire('focusTab', '', o.tab), true);
+      });
+      shell.before(frame);
+      ours.set(o.tab, frame);
+    }
+    for (const [tab, frame] of ours) {
+      const p = shown.find((s) => s.tab === tab);
+      frame.style.display = p ? 'block' : 'none';
+      if (p) place(frame, p.rect);
+    }
+  }
+
+  function drawFrame(s) {
+    band.style.borderColor = s.frameColor;
+    band.style.borderWidth = `${s.frameWidth}px`;
+    win.style.background = s.frameColor;
+    win.style.borderRadius = band.style.borderRadius = `${s.cornerRadius}px`;
+    const c = s.controls;
+    controls.style.display = c ? 'flex' : 'none';
+    if (c) Object.assign(controls.style, { left: `${c.x}px`, top: `${c.y}px`, width: `${c.w}px`, height: `${c.h}px` });
+  }
+
+  function showPopup(p) {
+    popup?.remove();
+    popup = null;
+    if (!p) return;
+    popup = document.createElement('div');
+    popup.className = 'mock-popup-backdrop';
+    const card = document.createElement('div');
+    card.className = 'mock-popup';
+    card.dataset.extension = p.extension;
+    const a = p.anchor;
+    Object.assign(card.style, { top: `${a.y + a.h + 6}px`, left: `${Math.max(8, a.x + a.w - 320)}px` });
+    card.innerHTML = '<b>Extension popup</b><div class="url"></div>';
+    card.querySelector('.url').textContent = p.url;
+    card.addEventListener('mousedown', (e) => e.stopPropagation());
+    popup.addEventListener('mousedown', () => {
+      fetch('/mock/extensions/fire', { method: 'POST', body: new URLSearchParams({ kind: 'closePopup', extension: p.extension }) });
+    });
+    popup.append(card);
+    win.append(popup);
+  }
+
+  // drawOutlines draws what the real window's region outlines do, bottom to top: the frame
+  // band's inner edge, each shown tab's page with its id, the shell's areas, the drag
+  // areas and the window buttons. Each kind's border is data-kind on its rectangle.
+  const kinds = {
+    frame: { color: '#9ca3af', dash: '2 2' },
+    page: { color: '#16a34a' },
+    shell: { color: '#dc2626' },
+    drag: { color: '#2563eb', dash: '4 3' },
+    buttons: { color: '#a855f7' },
+  };
+  function drawOutlines(s) {
+    outlines.hidden = !s.showRegions;
+    const svg = outlines.querySelector('svg');
+    svg.replaceChildren();
+    outlines.querySelectorAll('.label').forEach((l) => l.remove());
+    if (!s.showRegions) return;
+    const stroke = (kind, r) => {
+      if (r.w <= 0 || r.h <= 0) return;
+      const el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      // Half a pixel in, so the 1px line lies on whole pixels inside the rectangle.
+      el.setAttribute('x', r.x + 0.5);
+      el.setAttribute('y', r.y + 0.5);
+      el.setAttribute('width', r.w - 1);
+      el.setAttribute('height', r.h - 1);
+      el.setAttribute('stroke', kinds[kind].color);
+      if (kinds[kind].dash) el.setAttribute('stroke-dasharray', kinds[kind].dash);
+      el.dataset.kind = kind;
+      svg.append(el);
+    };
+    const W = innerWidth;
+    const H = innerHeight;
+    const band = s.frameWidth;
+    stroke('frame', { x: band, y: band, w: W - 2 * band, h: H - 2 * band });
+    for (const p of s.pages) {
+      stroke('page', p.rect);
+      const label = document.createElement('span');
+      label.className = 'label';
+      label.textContent = `tab ${p.tab}`;
+      Object.assign(label.style, { left: `${p.rect.x + 3}px`, top: `${p.rect.y + 2}px` });
+      outlines.append(label);
+    }
+    for (const kind of ['shell', 'drag']) {
+      for (const r of s.regions) if (r.area === kind) stroke(kind, r);
+    }
+    if (s.controls) stroke('buttons', s.controls);
+  }
+
+  new EventSource(`/mock/window/events?window=${id}`).onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    // Go gives the shell the keyboard, as the real window gives its view focus.
+    if (msg.t === 'focusShell') {
+      shell.contentWindow.focus();
+      return;
+    }
+    if (msg.t !== 'window') return;
+    state = msg;
+    loadShell(msg.shell);
+    placePages(msg.pages);
+    placeOurs(msg.ours, msg.pages);
+    drawFrame(msg);
+    route();
+    showPopup(msg.popup);
+    drawOutlines(msg);
+  };
+
+  // The window's size, which Go hears as the real window reports its own.
+  function reportSize() {
+    fetch(`/mock/window/size?window=${id}`, { method: 'POST', body: new URLSearchParams({ w: innerWidth, h: innerHeight }) });
+  }
+  addEventListener('resize', reportSize);
+  reportSize();
+</script>
+</body>
+</html>
